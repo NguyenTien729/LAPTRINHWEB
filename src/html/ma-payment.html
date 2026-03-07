@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="avatar-placeholder.png" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qlddgym@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item">Package</a>
+        <a href="ma-payment.html" class="nav-item active">Payment</a>
+        <a href="ma-members.html" class="nav-item">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="assets/logo.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+    <h2 class="page-title">Add Payment</h2>
+
+    <div class="card payment-form">
+        <div class="form-grid-three">
+            <input type="text" placeholder="Name of Member">
+            <select><option>Package</option></select>
+            <input type="text" placeholder="Price">
+        </div>
+        <div class="form-row-between">
+            <input type="date" class="date-input">
+            <button class="btn-purple">Mã thanh toán</button>
+        </div>
+        <div class="form-actions-right">
+            <button class="btn-primary">Save</button>
+            <button class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div class="card table-section">
+        <h3>Payment</h3>
+        <div class="table-tools">
+            <label>Show Entities <select><option>4</option></select></label>
+            <input type="text" placeholder="Search" class="search-table">
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Member ID</th>
+                <th>Package</th>
+                <th>Payment date</th>
+                <th>Payment type</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Phạm Thành Đạt</td>
+                <td>HV001</td>
+                <td>1 tháng</td>
+                <td>Mar 01</td>
+                <td>Tiền mặt</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

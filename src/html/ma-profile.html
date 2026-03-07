@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qlddgym@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item active">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item">Package</a>
+        <a href="ma-payment.html" class="nav-item">Payment</a>
+        <a href="ma-members.html" class="nav-item">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+    <h2 class="page-title">Manager Information</h2>
+
+    <div class="profile-layout">
+        <div class="card info-card">
+            <div class="avatar-circle">👤</div>
+            <button class="btn-outline">📝 Update Profile</button>
+            <div class="display-fields">
+                <p>Username: <span>ql01</span></p>
+                <p>Contact no: <span>0901111111</span></p>
+                <p>Email: <span>ql01@gmail.com</span></p>
+            </div>
+        </div>
+
+        <div class="card form-card">
+            <div class="input-group">
+                <label>Username</label>
+                <input type="text" placeholder="ql01">
+            </div>
+            <div class="input-group">
+                <label>Contact No.</label>
+                <input type="text" placeholder="0901111111">
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email" placeholder="ql01@gmail.com">
+            </div>
+            <button class="btn-save">Save</button>
+        </div>
+    </div>
+</main>
+</body>
+</html>

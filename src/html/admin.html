@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <link rel="stylesheet" href="assets/admin-style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">admin@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="admin.html" class="nav-item active">Staff</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="../img/logo.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+    <h2 class="page-title">Staff Management</h2>
+
+    <div class="staff-grid-container">
+        <div class="card staff-card">
+            <div class="avatar-circle">👤</div>
+            <h3>Nguyễn Hoàng Minh - NV001</h3>
+            <div class="staff-info-list">
+                <p>Role: <span>Quản lý</span></p>
+                <p>Username: <span>ql01</span></p>
+                <p>Password: <span>123456</span></p>
+                <p>Dob: <span>10-05-1995</span></p>
+                <p>Gender: <span>Nam</span></p>
+                <p>Contact no: <span>0909000001</span></p>
+                <p>Email: <span>ql01@gmail.com</span></p>
+                <p>Salary: <span>15.000.000</span></p>
+            </div>
+            <button class="btn-edit-yellow" onclick="openStaffModal('NV001', 'Nguyễn Hoàng Minh', 'ql01', '123456', '10-05-1995', 'Nam', '0909000001', 'ql01@gmail.com', 'Quản lý', '15.000.000')">Edit</button>
+        </div>
+
+    </div>
+</main>
+<div id="staffModal" class="modal">
+    <div class="modal-content staff-edit-modal">
+        <div class="modal-header-row">
+            <h2 class="modal-title">Detail: <span id="modalStaffId">NV001</span></h2>
+            <button class="btn-close-x" onclick="closeStaffModal()">X</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Name:</label>
+                    <input type="text" id="editStaffName">
+                </div>
+                <div class="input-group">
+                    <label>Staff ID:</label>
+                    <input type="text" id="editStaffIdDisplay" readonly>
+                </div>
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Username:</label>
+                    <input type="text" id="editUsername">
+                </div>
+                <div class="input-group">
+                    <label>Password:</label>
+                    <input type="password" id="editPassword">
+                </div>
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Date of birth:</label>
+                    <input type="text" id="editDob">
+                </div>
+                <div class="input-group">
+                    <label>Gender:</label>
+                    <input type="text" id="editGender">
+                </div>
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Contact no.:</label>
+                    <input type="text" id="editContact">
+                </div>
+                <div class="input-group">
+                    <label>Email:</label>
+                    <input type="email" id="editEmail">
+                </div>
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Role:</label>
+                    <select id="editRole">
+                        <option value="Quản lý">Quản lý</option>
+                        <option value="Huấn luyện viên">Huấn luyện viên</option>
+                        <option value="Lễ tân">Lễ tân</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Salary:</label>
+                    <input type="text" id="editSalary">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer-centered">
+            <button class="btn-save-purple">Save</button>
+            <button class="btn-cancel-outline" onclick="closeStaffModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    function openStaffModal(id, name, user, pass, dob, gender, contact, email, role, salary) {
+        document.getElementById('modalStaffId').innerText = id;
+        document.getElementById('editStaffIdDisplay').value = id;
+        document.getElementById('editStaffName').value = name;
+        document.getElementById('editUsername').value = user;
+        document.getElementById('editPassword').value = pass;
+        document.getElementById('editDob').value = dob;
+        document.getElementById('editGender').value = gender;
+        document.getElementById('editContact').value = contact;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editSalary').value = salary;
+
+        document.getElementById('staffModal').style.display = "block";
+    }
+
+    function closeStaffModal() {
+        document.getElementById('staffModal').style.display = "none";
+    }
+
+    // Đóng khi click ngoài vùng modal
+    window.onclick = function(event) {
+        let modal = document.getElementById('staffModal');
+        if (event.target == modal) {
+            closeStaffModal();
+        }
+    }
+</script>
+</html>

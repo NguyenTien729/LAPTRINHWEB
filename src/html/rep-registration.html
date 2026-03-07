@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Information - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="avatar-circle">
+            <img src="" alt="Avatar">
+        </div>
+        <p class="user-name">Trần Thu Hà</p>
+        <p class="user-email">lt01@gym.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="rep-profile.html" class="nav-item">Profile</a>
+        <a href="rep-registration.html" class="nav-item active">Registration</a>
+        <a href="rep-package.html" class="nav-item">Package</a>
+        <a href="rep-payment.html" class="nav-item">Payment</a>
+        <a href="rep-members.html" class="nav-item">View Members</a>
+        <a href="rep-trainer.html" class="nav-item">Trainer</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+    <h2 class="page-title">Register</h2>
+
+    <div class="card registration-form">
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Name of Participant</label>
+                <input type="text">
+            </div>
+            <div class="input-group">
+                <label>Date of Join</label>
+                <input type="date">
+            </div>
+            <div class="input-group">
+                <label>Email Address</label>
+                <input type="email">
+            </div>
+            <div class="input-group">
+                <label>Contact No.</label>
+                <input type="text">
+            </div>
+            <div class="input-group">
+                <label>Plan</label>
+                <select>
+                    <option>1 tháng</option>
+                    <option>3 tháng</option>
+                    <option>6 tháng</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Price</label>
+                <input type="text" disabled>
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn-primary">Avail Membership</button>
+            <button class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+</main>
+</body>
+</html>

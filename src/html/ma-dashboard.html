@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="avatar-placeholder.png" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qly01@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item active">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item">Package</a>
+        <a href="ma-payment.html" class="nav-item">Payment</a>
+        <a href="ma-members.html" class="nav-item">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+
+    <header class="header">
+        <div class="logo-section">
+            <img src="assets/logo_small.png" alt="AGym" class="app-logo">
+            <h1>AGym</h1>
+        </div>
+        <div class="top-nav">
+            <a href="#">View Members</a>
+        </div>
+    </header>
+
+    <section class="welcome-banner">
+        <h2>Welcome to AGym, manager <span class="highlight">Minh</span></h2>
+        <p>Manage members, trainers, and payments efficiently.</p>
+    </section>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">
+                <h3>Trainer</h3>
+                <span class="menu-dots">⋮</span>
+            </div>
+            <div class="list-item"><span class="dot"></span> Gia Bảo</div>
+            <div class="list-item"><span class="dot"></span> Ngọc Anh</div>
+            <div class="list-item"><span class="dot"></span> Quốc Huy</div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Payment status</h3>
+                <span class="menu-dots">⋮</span>
+            </div>
+            <div class="chart-container">
+                <div class="progress-circle">100%</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header">
+            <h3>Active Members</h3>
+        </div>
+        <div class="table-toolbar">
+            <input type="text" placeholder="Search..." class="search-box">
+        </div>
+        <table>
+            <thead>
+            <tr>
+                <th>Avatar</th>
+                <th>Name</th>
+                <th>Date paid</th>
+                <th>Date Expiry</th>
+                <th>Status</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td><div class="sm-avatar"></div></td>
+                <td>Phạm Thành Đạt</td>
+                <td>Feb 01</td>
+                <td>Mar 01</td>
+                <td><span class="status-active">Active</span></td>
+            </tr>
+            <tr>
+                <td><div class="sm-avatar"></div></td>
+                <td>Nguyễn Mai Anh</td>
+                <td>Feb 02</td>
+                <td>May 02</td>
+                <td><span class="status-active">Active</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receptionist Information - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="avatar-circle">
+            <img src="" alt="Avatar">
+        </div>
+        <p class="user-name">Phạm Gia Bảo</p>
+        <p class="user-email">hlv01@gym.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="trainer-profile.html" class="nav-item">Profile</a>
+        <a href="trainer-schedule.html" class="nav-item active">Schedule</a>
+        <a href="trainer-trainer.html" class="nav-item">Trainer</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="../img/logo.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+
+    <h2 class="page-title">Schedule:</h2>
+
+    <div class="schedule-filter-container">
+        <button class="btn-schedule" onclick="filterSchedule('1')">Monday - Wednesday - Friday | 6AM - 10AM</button>
+        <button class="btn-schedule" onclick="filterSchedule('2')">Tuesday - Thursday - Saturday | 2PM - 6PM</button>
+        <button class="btn-schedule" onclick="filterSchedule('all')">All currently teaching members</button>
+    </div>
+
+    <div class="card table-card-purple">
+        <div class="table-header-tools">
+            <div class="search-box-container">
+                <input type="text" placeholder="Search" class="table-search">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <table id="memberTable">
+            <thead>
+            <tr>
+                <th># Name</th>
+                <th>Member ID</th>
+                <th>Date Enrolled</th>
+                <th>Date Expiration</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr data-schedule="1">
+                <td>Phạm Thành Đạt</td>
+                <td>HV001</td>
+                <td>Feb 01</td>
+                <td>Mar 01</td>
+                <td><button class="btn-detail-pill" onclick="openMemberDetail('HV001', 'Phạm Thành Đạt', '01-01-2000', 'Nam', '0909000001')">Detail</button></td>
+            </tr>
+            <tr data-schedule="2">
+                <td>Nguyễn Mai Anh</td>
+                <td>HV002</td>
+                <td>Feb 02</td>
+                <td>May 02</td>
+                <td><button class="btn-detail-pill" onclick="openMemberDetail('HV002', 'Nguyễn Mai Anh', '15-05-1998', 'Nữ', '0908888888')">Detail</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<div id="memberDetailModal" class="modal">
+    <div class="modal-content member-detail-modal">
+        <div class="modal-header-row">
+            <h2 class="modal-title">Detail: <span id="displayMemberId">HV001</span></h2>
+            <button class="btn-close-box" onclick="closeMemberDetail()">X</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="input-group">
+                <label>Name:</label>
+                <input type="text" id="detailName" class="input-readonly" readonly>
+            </div>
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Date of birth:</label>
+                    <input type="text" id="detailDob" class="input-readonly" readonly>
+                </div>
+                <div class="input-group">
+                    <label>Gender:</label>
+                    <input type="text" id="detailGender" class="input-readonly" readonly>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>Contact no.:</label>
+                <input type="text" id="detailContact" class="input-readonly" readonly>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script>
+    // Chức năng lọc lịch trình
+    function filterSchedule(type) {
+        const rows = document.querySelectorAll('#memberTable tbody tr');
+
+        rows.forEach(row => {
+            const scheduleType = row.getAttribute('data-schedule');
+            if (type === 'all' || scheduleType === type) {
+                row.style.display = ""; // Hiện
+            } else {
+                row.style.display = "none"; // Ẩn
+            }
+        });
+    }
+
+    // Chức năng Pop-up chi tiết
+    function openMemberDetail(id, name, dob, gender, contact) {
+        document.getElementById('displayMemberId').innerText = id;
+        document.getElementById('detailName').value = name;
+        document.getElementById('detailDob').value = dob;
+        document.getElementById('detailGender').value = gender;
+        document.getElementById('detailContact').value = contact;
+
+        document.getElementById('memberDetailModal').style.display = "block";
+    }
+
+    function closeMemberDetail() {
+        document.getElementById('memberDetailModal').style.display = "none";
+    }
+
+    // Đóng khi click ngoài vùng modal
+    window.onclick = function(event) {
+        let modal = document.getElementById('memberDetailModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+</html>

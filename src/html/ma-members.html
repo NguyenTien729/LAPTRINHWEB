@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="avatar-placeholder.png" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qlddgym@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item">Package</a>
+        <a href="ma-payment.html" class="nav-item">Payment</a>
+        <a href="ma-members.html" class="nav-item active">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+
+        <div class="header-logo-section">
+            <img src="../img/logo.png" alt="AGym Logo" class="app-logo">
+            <h1>AGym</h1>
+        </div>
+
+        <h2 class="page-title">Active Members</h2>
+
+        <div class="card table-card">
+            <div class="card-header-purple">
+                <h3>Gym Members</h3>
+                <div class="search-box-container">
+                    <input type="text" placeholder="Search" class="table-search">
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                <tr>
+                    <th># Name</th>
+                    <th>Member ID</th>
+                    <th>Date Enrolled</th>
+                    <th>Date Expiration</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td>Phạm Thành Đạt</td>
+                    <td>HV001</td>
+                    <td>Feb 01</td>
+                    <td>Mar 01</td>
+                    <td><button class="btn-detail-pill" onclick="openMemberModal('HV001', 'Phạm Thành Đạt', '01-01-2000', 'Nam', '0909000001')">Detail</button></td>
+                </tr>
+                <tr>
+                    <td>Nguyễn Mai Anh</td>
+                    <td>HV002</td>
+                    <td>Feb 02</td>
+                    <td>May 02</td>
+                    <td><button class="btn-detail-pill" onclick="openMemberModal('HV002', 'Nguyễn Mai Anh', '15-05-1998', 'Nữ', '0908888888')">Detail</button></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div class="table-footer">
+                <button class="btn-pagination">Previous</button>
+                <button class="btn-pagination">Next</button>
+            </div>
+        </div>
+
+</main>
+<div id="memberModal" class="modal">
+    <div class="modal-content member-detail-modal">
+        <div class="modal-header-row">
+            <h2 class="modal-title">Detail: <span id="modalMemberId">HV001</span></h2>
+            <button class="btn-close-box" onclick="closeMemberModal()">X</button>
+        </div>
+
+        <div class="modal-body">
+            <div class="input-group">
+                <label>Name:</label>
+                <input type="text" id="memberFullname" class="input-readonly" readonly>
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Date of birth:</label>
+                    <input type="text" id="memberDob" class="input-readonly" readonly>
+                </div>
+                <div class="input-group">
+                    <label>Gender:</label>
+                    <input type="text" id="memberGender" class="input-readonly" readonly>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Contact no.:</label>
+                <input type="text" id="memberContact" class="input-readonly" readonly>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-delete-rect">Delete</button>
+            <button class="btn-edit-rect">Edit</button>
+        </div>
+    </div>
+</div>
+</body>
+
+<script>
+    function openMemberModal(id, name, dob, gender, contact) {
+        const modal = document.getElementById('memberModal');
+
+        // Gán dữ liệu vào các thẻ
+        document.getElementById('modalMemberId').innerText = id;
+        document.getElementById('memberFullname').value = name;
+        document.getElementById('memberDob').value = dob;
+        document.getElementById('memberGender').value = gender;
+        document.getElementById('memberContact').value = contact;
+
+        // Hiển thị Modal
+        modal.style.display = "block";
+    }
+
+    function closeMemberModal() {
+        document.getElementById('memberModal').style.display = "none";
+    }
+
+    // Đóng modal khi click ra ngoài vùng trắng
+    window.onclick = function(event) {
+        let modal = document.getElementById('memberModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+</html>

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="avatar-placeholder.png" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qlddgym@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item">Package</a>
+        <a href="ma-payment.html" class="nav-item">Payment</a>
+        <a href="ma-members.html" class="nav-item">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item active">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+
+    <h2 class="page-title">Sales Report</h2>
+
+    <div class="card report-filter-card">
+        <div class="filter-grid">
+            <div class="input-group">
+                <label>From Date</label>
+                <input type="date">
+            </div>
+            <div class="input-group">
+                <label>To Date</label>
+                <input type="date">
+            </div>
+            <div class="input-group total-box">
+                <label>Total</label>
+                <div class="total-value">0 VNĐ</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card table-card">
+        <div class="card-header">
+            <h3>Payment History</h3>
+        </div>
+
+        <div class="table-tools">
+            <div class="show-entries">
+                Show Entities
+                <select>
+                    <option>4</option>
+                    <option>10</option>
+                </select>
+            </div>
+            <div class="search-box-container">
+                <input type="text" placeholder="Search" class="table-search">
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Member Name</th>
+                <th>Member ID</th>
+                <th>Plan</th>
+                <th>Trainer ID</th>
+                <th>Date Paid</th>
+                <th>Amount</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>Phạm Thành Đạt</td>
+                <td>HV001</td>
+                <td>1 tháng</td>
+                <td>NV004</td>
+                <td>01-02-2026</td>
+                <td>500.000</td>
+            </tr>
+            <tr>
+                <td>Nguyễn Mai Anh</td>
+                <td>HV002</td>
+                <td>3 tháng</td>
+                <td>NV004</td>
+                <td>02-02-2026</td>
+                <td>1.200.000</td>
+            </tr>
+            <tr>
+                <td>Trần Quốc Bảo</td>
+                <td>HV003</td>
+                <td>6 tháng</td>
+                <td>none</td>
+                <td>02-02-2026</td>
+                <td>3.000.000</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

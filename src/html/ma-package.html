@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - AGym</title>
+    <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="user-profile">
+        <div class="user-avatar">
+            <img src="avatar-placeholder.png" alt="Avatar">
+        </div>
+        <p class="user-name">Nguyễn Hoàng Minh</p>
+        <p class="user-email">qlddgym@gmail.com</p>
+    </div>
+    <nav class="nav-menu">
+        <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
+        <a href="ma-profile.html" class="nav-item">Profile</a>
+        <a href="ma-registration.html" class="nav-item">Registration</a>
+        <a href="ma-package.html" class="nav-item active">Package</a>
+        <a href="ma-payment.html" class="nav-item">Payment</a>
+        <a href="ma-members.html" class="nav-item">View Members</a>
+        <a href="ma-trainer.html" class="nav-item">Trainer</a>
+        <a href="ma-report.html" class="nav-item">Report</a>
+        <a href="login.html" class="nav-item logout">Logout</a>
+    </nav>
+</aside>
+
+<main class="main-content">
+    <div class="header-logo-section">
+        <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
+        <h1>AGym</h1>
+    </div>
+
+    <h2 class="page-title">Package Plan</h2>
+
+    <div class="card package-form-card">
+        <div class="form-grid-package">
+            <div class="input-group">
+                <label>Package Name</label>
+                <input type="text" placeholder="Nhập tên gói tập">
+            </div>
+            <div class="input-group">
+                <label>Validity (Month)</label>
+                <input type="number" placeholder="Số tháng">
+            </div>
+            <div class="input-group full-width">
+                <label>Amount</label>
+                <input type="text" placeholder="Giá tiền">
+            </div>
+        </div>
+        <div class="form-actions">
+            <button class="btn-save-yellow">Save</button>
+            <button class="btn-cancel">Cancel</button>
+        </div>
+    </div>
+
+    <div class="card table-card">
+        <div class="table-header-tools">
+            <div class="show-entries">
+                Show Entities
+                <select>
+                    <option>10</option>
+                    <option>20</option>
+                </select>
+            </div>
+            <div class="search-box-container">
+                <input type="text" placeholder="Search" class="table-search">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th># Plan Name</th>
+                <th>Validity</th>
+                <th>Amount</th>
+                <th>Edit</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>1 tháng</td>
+                <td>1</td>
+                <td>500.000</td>
+                <td><button class="btn-edit-small" onclick="openEditModal('1 tháng', 1, '500.000')">✏️</button></td>
+
+            </tr>
+            <tr>
+                <td>3 tháng</td>
+                <td>3</td>
+                <td>1.200.000</td>
+                <td><button class="btn-edit-small" onclick="openEditModal('3 tháng', 3, '1.200.000')">✏️</button></td>
+            </tr>
+            <tr>
+                <td>6 tháng</td>
+                <td>6</td>
+                <td>3.000.000</td>
+                <td><button class="btn-edit-small" onclick="openEditModal('6 tháng', 6, '3.000.000')">✏️</button></td>
+
+            </tr>
+            <tr>
+                <td>1 năm</td>
+                <td>12</td>
+                <td>5.000.000</td>
+                <td><button class="btn-edit-small" onclick="openEditModal('1 năm', 12, '5.000.000')">✏️</button></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+
+
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <h2 class="modal-title">Edit package: <span id="displayPackageName"></span></h2>
+
+        <div class="modal-body">
+            <div class="input-group">
+                <label>Plan Name</label>
+                <input type="text" id="editPlanName" value="">
+            </div>
+
+            <div class="modal-grid">
+                <div class="input-group">
+                    <label>Validity</label>
+                    <input type="number" id="editValidity" value="">
+                </div>
+                <div class="input-group">
+                    <label>Amount</label>
+                    <input type="text" id="editAmount" value="">
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn-delete">Delete</button>
+            <div class="footer-right">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-save-changes">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+
+
+<script>
+    const modal = document.getElementById("editModal");
+
+    // Hàm mở Modal
+    function openEditModal(name, validity, amount) {
+        document.getElementById("displayPackageName").innerText = name;
+        document.getElementById("editPlanName").value = name;
+        document.getElementById("editValidity").value = validity;
+        document.getElementById("editAmount").value = amount;
+
+        modal.style.display = "block";
+    }
+
+    // Hàm đóng Modal
+    function closeModal() {
+        modal.style.display = "none";
+    }
+
+    // Đóng khi click ra ngoài vùng trắng của cửa sổ
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+</script>
+</html>
+
