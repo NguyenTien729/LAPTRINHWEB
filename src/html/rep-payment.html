@@ -27,7 +27,6 @@
     </nav>
 </aside>
 
-
 <main class="main-content">
     <div class="header-logo-section">
         <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
@@ -38,12 +37,17 @@
     <div class="card payment-form">
         <div class="form-grid-three">
             <input type="text" placeholder="Name of Member">
-            <select><option>Package</option></select>
-            <input type="text" placeholder="Price">
+            <select id="packageSelect">
+                <option value="">Chọn gói tập</option>
+                <option value="500000">1 tháng</option>
+                <option value="1200000">3 tháng</option>
+                <option value="3000000">6 tháng</option>
+                <option value="5000000">1 năm</option> </select>
+            <input type="text" id="priceInput" placeholder="Price" readonly>
         </div>
         <div class="form-row-between">
             <input type="date" class="date-input">
-            <button class="btn-purple">Mã thanh toán</button>
+            <button id="btnQR" class="btn-purple">Mã thanh toán</button>
         </div>
         <div class="form-actions-right">
             <button class="btn-primary">Save</button>
@@ -79,5 +83,43 @@
         </table>
     </div>
 </main>
+<div id="qrModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
+    <div style="position: relative; margin: 10% auto; padding: 20px; width: 300px; background: white; border-radius: 8px; text-align: center;">
+        <span id="closeModal" style="position: absolute; right: 10px; top: 5px; cursor: pointer; font-size: 24px;">&times;</span>
+        <h3>Quét mã để thanh toán</h3>
+        <img src="assets/QR.jpg" alt="QR Code" style="width: 100%; height: auto; margin-top: 10px;">
+    </div>
+</div>
 </body>
-</html>
+<script>
+    const packageSelect = document.getElementById('packageSelect');
+    const priceInput = document.getElementById('priceInput');
+
+    packageSelect.addEventListener('change', function() {
+        const selectedPrice = this.value;
+        if (selectedPrice) {
+            const formattedPrice = new Intl.NumberFormat('vi-VN').format(selectedPrice);
+            priceInput.value = formattedPrice + " VNĐ";
+        } else {
+            priceInput.value = "";
+        }
+    });
+    const btnShowQR = document.getElementById('btnQR');
+    const qrModal = document.getElementById('qrModal');
+    const closeModal = document.getElementById('closeModal');
+
+    btnShowQR.addEventListener('click', function() {
+        qrModal.style.display = "block";
+    });
+
+    closeModal.addEventListener('click', function() {
+        qrModal.style.display = "none";
+    });
+
+    window.onclick = function(event) {
+        if (event.target == qrModal) {
+            qrModal.style.display = "none";
+        }
+    }
+</script>
+</html></html>

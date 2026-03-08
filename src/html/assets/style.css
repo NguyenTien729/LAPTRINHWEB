@@ -95,17 +95,17 @@ body {
     height: auto;
 }
 
-/* Layout & Cards */
+/*Layout & cards*/
 .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 .profile-layout { display: flex; gap: 20px; }
 .info-card { flex: 1; text-align: center; }
 .form-card { flex: 1.5; }
 
-/* Grid Systems */
+/*Grid systems*/
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .form-grid-three { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 15px; margin-bottom: 15px; }
 
-/* Buttons & Inputs */
+/*Buttons & inputs*/
 .btn-primary { background: #1e1b4b; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
 .btn-cancel { background: white; border: 1.5px solid #1e1b4b; color: #1e1b4b; padding: 10px 25px; border-radius: 20px; }
 .btn-purple { background: #312e81; color: white; border: none; padding: 8px 15px; border-radius: 8px; }
@@ -115,7 +115,7 @@ input, select {
     border-radius: 10px; background: #f8fafc; box-sizing: border-box;
 }
 
-/* Table Styling */
+/*Table*/
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th { background: #f1f5f9; text-align: left; padding: 12px; color: #64748b; }
 td { padding: 12px; border-bottom: 1px solid #f1f5f9; }
@@ -133,7 +133,7 @@ body {
     background-color: #ebecef;
 }
 
-/* Sidebar */
+/*Sidebar*/
 .sidebar {
     width: 260px;
     background-color: var(--primary-color);
@@ -183,7 +183,7 @@ body {
 
 .logout { margin-top: auto; color: #fda4af; }
 
-/* Main Content */
+/*Main*/
 .main-content {
     margin-left: 260px;
     flex: 1;
@@ -256,11 +256,12 @@ body {
     font-size: 20px;
 }
 
-/* Table */
+/*Table*/
 .table-card {
     background: white;
     padding: 20px;
     border-radius: 15px;
+
 }
 
 .search-box {
@@ -322,9 +323,6 @@ td { padding: 12px; border-bottom: 1px solid #f9fafb; }
 }
 
 /* Định dạng bảng trong trang Package */
-.table-card {
-    background-color: #f8fafc;
-}
 
 .table-header-tools {
     display: flex;
@@ -452,10 +450,6 @@ td { padding: 12px; border-bottom: 1px solid #f9fafb; }
 }
 
 /* Bảng Manage Trainer */
-.table-card {
-    background-color: #f1f5f9; /* Nền xám nhạt cho vùng bảng */
-}
-
 .table-card .card-header {
     background-color: #8c8ebf; /* Màu tím nhạt của header bảng trong ảnh */
     padding: 15px;
