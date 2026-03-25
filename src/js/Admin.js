@@ -1,7 +1,5 @@
 const API_BASE = 'http://localhost:3000';
 
-
-
 class Admin {
     constructor() {
         this.apiBase = API_BASE;

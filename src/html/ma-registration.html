@@ -9,7 +9,7 @@
 <body>
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="user-avatar"><img src="avatar-placeholder.png" alt="Avatar"></div>
+        <div class="user-avatar"><img src="" alt="Avatar"></div>
         <p class="user-name" id="sidebarName">...</p>
         <p class="user-email" id="sidebarEmail">...</p>
     </div>
@@ -38,30 +38,26 @@
                 <input type="text" id="regName">
             </div>
             <div class="input-group">
-                <label>Date of Join</label>
-                <input type="date" id="regDate">
+                <label>Date of birth</label>
+                <input type="date" id="regDob">
             </div>
             <div class="input-group">
                 <label>Email Address</label>
                 <input type="email" id="regEmail">
             </div>
             <div class="input-group">
-                <label>Contact No.</label>
-                <input type="text" id="regContact">
-            </div>
-            <div class="input-group">
-                <label>Plan</label>
-                <select id="regPlan">
-                    <option value="1">1 tháng</option>
-                    <option value="3">3 tháng</option>
-                    <option value="6">6 tháng</option>
-                    <option value="12">1 năm</option>
+                <label>Gender</label>
+                <select id="regGender">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
                 </select>
             </div>
             <div class="input-group">
-                <label>Price</label>
-                <input type="text" id="regPrice" disabled>
+                <label>Contact No.</label>
+                <input type="text" id="regContact">
             </div>
+
+
         </div>
         <div class="form-actions">
             <button class="btn-primary" onclick="app.registerMember()">Avail Membership</button>

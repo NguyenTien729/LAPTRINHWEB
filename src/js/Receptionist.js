@@ -178,8 +178,6 @@ class ReceptionistApp {
                 <td>${p.name}</td>
                 <td>${p.validity}</td>
                 <td>${Number(p.price).toLocaleString('vi-VN')}</td>
-                <td><button class="btn-edit-small"
-                    onclick="app.openPackageModal('${p.packageId}','${p.name}','${p.validity}','${p.price}')">Edit</button></td>
             </tr>`;
         });
     }

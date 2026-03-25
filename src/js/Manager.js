@@ -1,6 +1,5 @@
 const API_BASE = 'http://localhost:3000';
 
-
 class ManagerApp {
     constructor() {
         this.apiBase = API_BASE;
@@ -90,6 +89,31 @@ class ManagerApp {
         if (result.success) { this.closeMemberModal(); this.loadMembers(); }
     }
 
+    async updateMember() {
+        const memberId = document.getElementById('modalMemberId').innerText;
+        const data = {
+            name:    this._val('memberFullname'),
+            dob:     this._val('memberDob'),
+            gender:  this._val('memberGender'),
+            contact: this._val('memberContact')
+        };
+
+        if (!data.name || !data.contact) {
+            alert("Không để trống tên/sđt");
+            return;
+        }
+        try {
+            const res = await this._req(`/api/members/${memberId}`, 'PUT', data);
+            if (res.success) {
+                alert("Cập nhật thành công");
+                this._hide('memberModal');
+                this.loadMembers('memberTbody');
+            }
+        } catch (err) {
+            alert("Lỗi: " + err.message);
+        }
+    }
+
     // ── Trainer ─────────────────────────────────────────────
 
     async loadTrainers(tbodyId = 'trainerTbody') {
@@ -106,7 +130,7 @@ class ManagerApp {
                 <td>${t.specialty}</td>
                 <td><button class="btn-detail-small"
                     onclick="app.openTrainerModal('${t.staffid}','${t.name}','${t.dob}','${t.gender}','${t.contact}','${t.specialty}')">
-                    Detail</button></td>
+                    Edit</button></td>
             </tr>`;
         });
     }
@@ -245,19 +269,84 @@ class ManagerApp {
         if (result.success) { this.closePackageModal(); this.loadPackages(); }
     }
 
-    // ── Registration ─────────────────────────────────────────
+    //Registration
 
     async registerMember() {
         const data = {
-            name:    this._val('regName'),
-            email:   this._val('regEmail'),
-            contact: this._val('regContact'),
-            plan:    this._val('regPlan'),
-            date:    this._val('regDate')
+            name: this._val('regName'),
+            dob: this._val('regDob'),
+            email: this._val('regEmail'),
+            gender: this._val('regGender'),
+            contact: this._val('regContact')
         };
+        if(!data.name||!data.contact){
+            alert("vui lòng nhập tên và số điện thoại");
+            return;
+        }
+
         const result = await this._req('/api/members', 'POST', data);
-        if (result.success) alert('Đăng ký thành công!');
+        if (result.success) {
+            alert(result.message);
+            window.location.href('ma-payment.html');
+        }
         else alert('Lỗi: ' + result.message);
+    }
+
+
+    async iniPayment() {
+        const [packages, schedules] = await Promise.all([
+            this._req('/api/packages'),
+            this._req('/api/schedules-detail')
+        ]);
+
+        // Đổ gói tập
+        const pkgSelect = document.getElementById('packageSelect');
+        this._pkgs = packages; // Lưu tạm để lấy giá
+        packages.forEach(p => pkgSelect.innerHTML += `<option value="${p.packageid}">${p.name}</option>`);
+
+        // Đổ lịch tập
+        const schSelect = document.getElementById('scheduleSelect');
+        this._schs = schedules; // Lưu tạm để lấy giờ/thứ
+        schedules.forEach(s => {
+            schSelect.innerHTML += `<option value="${s.MaLich}">${s.TenNV} - ${s.MaLich}</option>`;
+        });
+    }
+    // 2. Xử lý khi chọn gói tập -> Hiển thị giá
+    onPackageChange(el) {
+        const pkg = this._pkgs.find(p => p.packageid === el.value);
+        document.getElementById('priceInput').value = pkg ? pkg.price : '';
+    }
+
+    // 3. Xử lý khi chọn lịch -> Hiển thị Giờ & Thứ (Readonly)
+    onScheduleChange(el) {
+        const sch = this._schs.find(s => s.MaLich === el.value);
+        if (sch) {
+            document.getElementById('timeDisplay').value = `${sch.GioBatDau} - ${sch.GioKetThuc}`;
+            document.getElementById('daysDisplay').value = `Thứ: ${sch.CácThứ}`;
+        } else {
+            document.getElementById('timeDisplay').value = '';
+            document.getElementById('daysDisplay').value = '';
+        }
+    }
+
+    // 4. Lưu tổng hợp
+    async savePayment() {
+        const data = {
+            memberName:  this._val('paymentMember'),
+            packageId:   this._val('packageSelect'),
+            maLich:      this._val('scheduleSelect'),
+            amount:      this._val('priceInput'),
+            date:        this._val('paymentDate'),
+            paymentType: this._val('paymentMethod')
+        };
+
+        const res = await this._req('/api/payments-full', 'POST', data);
+        if (res.success) {
+            alert(res.message);
+            this.loadPayments('paymentTbody');
+        } else {
+            alert("Lỗi: " + res.message);
+        }
     }
 
     // ── Report ───────────────────────────────────────────────
@@ -267,18 +356,17 @@ class ManagerApp {
 
         // Validate
         if (!fromDate || !toDate) {
-            alert("Vui lòng chọn khoảng thời gian!");
+            alert("chọn t.g");
             return;
         }
         if (new Date(fromDate) > new Date(toDate)) {
-            alert("Ngày bắt đầu phải nhỏ hơn ngày kết thúc!");
+            alert("ngày trc > ngày sau");
             return;
         }
         try {
             await this.loadRevenueTotal(fromDate, toDate);
         } catch (error) {
-            console.error("bug doanh thu", error);
-            alert("Lỗi khi tính doanh thu!");
+            alert("lỗi doanh thu");
         }
     }
 
@@ -291,7 +379,7 @@ class ManagerApp {
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Status: ${response.status}`);
             }
 
             const result = await response.json();
@@ -303,14 +391,12 @@ class ManagerApp {
                     totalRevenue.toLocaleString('vi-VN') + ' VNĐ';
 
             } else {
-                console.error("❌ Lỗi API:", result.message);
                 document.getElementById('reportTotal').textContent = '0 VNĐ';
-                alert(result.message || "Lỗi khi tính doanh thu!");
+                alert(result.message || "lỗi tính doanh thu");
             }
         } catch (error) {
-            console.error("❌ Lỗi fetch revenue:", error);
             document.getElementById('reportTotal').textContent = 'Lỗi';
-            alert("Không thể kết nối đến server. Vui lòng kiểm tra:\n1. Server đã chạy chưa (node server.js)\n2. URL API đúng chưa");
+            alert("lỗi to");
         }
     }
 

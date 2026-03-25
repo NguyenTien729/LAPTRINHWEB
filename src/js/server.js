@@ -48,7 +48,7 @@ app.post('/login', (req, res) => {
     });
 });
 
-//API THÊM NHÂN VIÊN MỚI
+//API thêm nhân viên
 app.post('/api/staffs', (req, res) => {
     const { staffId, name, dob, gender, contact, email, role_id } = req.body;
 
@@ -74,7 +74,7 @@ app.post('/api/staffs', (req, res) => {
     });
 });
 
-//API XÓA NHÂN VIÊN
+//API xóa nhân viên
 app.delete('/api/staffs/:id', (req, res) => {
     const staffId = req.params.id;
     // Do có ràng buộc khóa ngoại, ta xóa USER trước, NHANVIEN sau (hoặc dùng Transaction)
@@ -99,7 +99,7 @@ app.get('/api/staffs', (req, res) => {
             u.UserName as username, 
             u.Password as pass, 
             u.Status as status, 
-            nv.NgaySinh as dob, 
+            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob, 
             nv.GioiTinh as gender, 
             nv.SDT as contact, 
             nv.Email as email, 
@@ -170,17 +170,112 @@ app.get('/api/members', (req, res) => {
         SELECT
             hv.MaHV as memberid,
             hv.TenHV as name,
-            hv.NgaySinh as dob,
+            DATE_FORMAT( hv.NgaySinh,'%Y-%m-%d') as dob, 
             hv.GioiTinh as gender,
             hv.SDT as contact,
-            dk.NgayBatDau as date_enrolled,
-            dk.NgayKetThuc as date_expiry
+            DATE_FORMAT( dk.NgayBatDau,'%Y-%m-%d') as date_enrolled,
+            DATE_FORMAT( dk.NgayKetThuc,'%Y-%m-%d') as date_expiry
         FROM HOIVIEN hv
         LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
     `;
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
         res.json(result);
+    });
+});
+// hàm gen id
+const generateNextId = (table, column, prefix) => {
+    return new Promise((resolve, reject) => {
+        const sql = `SELECT ${column} FROM ${table} ORDER BY ${column} DESC LIMIT 1`;
+        db.query(sql, (err, results) => {
+            if (err) return reject(err);
+            let nextNum = 11;
+            if (results.length > 0) {
+                const lastId = results[0][column];
+                const lastNum = parseInt(lastId.replace(prefix, ""));
+                nextNum = lastNum + 1;
+            }
+            resolve(prefix + String(nextNum).padStart(3, '0'));
+        });
+    });
+};
+
+
+
+//API sửa hội viên
+app.put('/api/members/:id', (req, res) => {
+    const { name, dob, gender, contact } = req.body;
+    const id = req.params.id;
+
+    const sql = "UPDATE HOIVIEN SET TenHV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ? WHERE MaHV = ?";
+    db.query(sql, [name, dob, gender, contact, id], (err, result) => {
+        if (err) return res.status(500).json({ success: false, message: err.message });
+        res.json({ success: true, message: "Đã cập nhật" });
+    });
+});
+
+//API đăng ký hội viên
+app.post('/api/members', async (req, res) => {
+    try {
+        const { name, dob, gender, contact } = req.body;
+        const maHV = await generateNextId('HOIVIEN', 'MaHV', 'HV');
+
+        const sql = "INSERT INTO HOIVIEN (MaHV, TenHV, NgaySinh, GioiTinh, SDT) VALUES (?, ?, ?, ?, ?)";
+        db.query(sql, [maHV, name, dob, gender, contact], (err) => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            res.json({ success: true, message: `Đăng ký thành công ${maHV}` });
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+//API thanh toán -> lưu vào bảng đăng ký tập vs bảng tt
+app.post('/api/payments-full', async (req, res) => {
+    const { memberName, packageId, maLich, date, paymentType, amount } = req.body;
+
+    // check tên hội viên
+    db.query("SELECT MaHV FROM HOIVIEN WHERE TenHV = ?", [memberName], async (err, members) => {
+        if (err || members.length === 0) return res.status(400).json({ success: false, message: "Hội viên chưa tồn tại!" });
+        const maHV = members[0].MaHV;
+
+        try {
+            const maDK = await generateNextId('DANGKYTAP', 'MaDK', 'DK');
+            const maTT = await generateNextId('THANHTOAN', 'MaTT', 'TT');
+
+            db.beginTransaction((err) => {
+                // Thêm DANGKYTAP
+                const sqlDK = "INSERT INTO DANGKYTAP (MaDK, MaHV, MaGoi, MaLich, NgayBatDau) VALUES (?, ?, ?, ?, ?)";
+                db.query(sqlDK, [maDK, maHV, packageId, maLich, date], (err) => {
+                    if (err) return db.rollback(() => res.status(500).json({message: "Lỗi DK"}));
+                    // Thêm THANHTOAN
+                    const sqlTT = "INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai) VALUES (?, ?, NOW(), ?, ?, 'Đã thanh toán')";
+                    db.query(sqlTT, [maTT, maDK, amount, paymentType], (err) => {
+                        if (err) return db.rollback(() => res.status(500).json({message: "Lỗi TT"}));
+
+                        db.commit(() => res.json({ success: true, message: `Thành công! Mã DK: ${maDK}, Mã TT: ${maTT}` }));
+                    });
+                });
+            });
+        } catch (error) {
+            res.status(500).json({ success: false, message: error.message });
+        }
+    });
+});
+
+//API lấy lịch dạy
+app.get('/api/schedules-detail', (req, res) => {
+    const sql = `
+        SELECT ld.MaLich, ld.MaHLV, nv.TenNV, ld.GioBatDau, ld.GioKetThuc, 
+               GROUP_CONCAT(lt.Thu ORDER BY lt.Thu) as CácThứ
+        FROM LICHDAY ld
+        JOIN NHANVIEN nv ON ld.MaHLV = nv.MaNV
+        JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
+        GROUP BY ld.MaLich
+    `;
+    db.query(sql, (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
     });
 });
 
@@ -253,7 +348,7 @@ app.get('/api/payments', (req, res) => {
             hv.TenHV as name,
             hv.MaHV as memberid,
             gt.TenGoi as package,
-            tt.NgayTT as date_paid,
+            DATE_FORMAT(tt.NgayTT,'%Y-%m-%d') as date_paid,
             tt.SoTien as amount,
             tt.HinhThucTT as payment_type,
             tt.TrangThai as status
@@ -270,43 +365,6 @@ app.get('/api/payments', (req, res) => {
 });
 
 
-// API thêm thanh toán
-app.post('/api/payments', (req, res) => {
-    const { memberName, packageId, date, paymentType } = req.body;
-    // 1. Tìm MaHV từ tên hội viên
-    const sqlFindMember = "SELECT MaHV FROM HOIVIEN WHERE TenHV = ? LIMIT 1";
-    db.query(sqlFindMember, [memberName], (err, members) => {
-        if (err || members.length === 0)
-            return res.status(400).json({ success: false, message: "Không tìm thấy hội viên" });
-        const maHV = members[0].MaHV;
-
-        // 2. Tìm MaDK của hội viên (lấy bản đăng ký mới nhất)
-        const sqlFindDK = "SELECT MaDK FROM DANGKYTAP WHERE MaHV = ? ORDER BY NgayBatDau DESC LIMIT 1";
-        db.query(sqlFindDK, [maHV], (err, dks) => {
-            if (err || dks.length === 0)
-                return res.status(400).json({ success: false, message: "Hội viên chưa có đăng ký tập" });
-
-            const maDK = dks[0].MaDK;
-
-            // 3. Tạo mã thanh toán tự động
-            const maTT = 'TT' + Date.now();
-
-            // 4. Thêm vào bảng THANHTOAN
-            const sqlInsert = `
-                INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai)
-                VALUES (?, ?, ?, (SELECT GiaTien FROM GOITAP WHERE MaGoi = ?), ?, 'Đã Thanh Toán')
-            `;
-            db.query(sqlInsert, [maTT, maDK, date, packageId, paymentType || 'Tiền mặt'], (err) => {
-                if (err) return res.status(500).json({ success: false, message: err.message });
-                res.json({ success: true, message: "Lưu thanh toán thành công!" });
-            });
-        });
-    });
-});
-
-
-
-
 
 //API gói tập
 app.get('/api/packages', (req, res) => {
@@ -318,7 +376,7 @@ app.get('/api/packages', (req, res) => {
 });
 
 
-// API lấy danh sách packages
+// API danh sách packages
 app.post('/api/packages', (req, res) => {
     const { name, validity, price } = req.body;
     const maGoi = 'GT' + Date.now();
@@ -329,7 +387,7 @@ app.post('/api/packages', (req, res) => {
     });
 });
 
-//API cập nhật package
+//API cập nhật packages
 app.put('/api/packages/:id', (req, res) => {
     const { name, validity, price } = req.body;
     const sql = "UPDATE GOITAP SET TenGoi = ?, ThoiHan = ?, GiaTien = ? WHERE MaGoi = ?";

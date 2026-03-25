@@ -13,8 +13,8 @@
         <div class="avatar-circle">
             <img src="" alt="Avatar">
         </div>
-        <p class="user-name">Trần Thu Hà</p>
-        <p class="user-email">lt01@gym.com</p>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="rep-profile.html" class="nav-item">Profile</a>
@@ -33,25 +33,26 @@
         <h1>AGym</h1>
     </div>
     <h2 class="page-title">Add Payment</h2>
-
     <div class="card payment-form">
         <div class="form-grid-three">
-            <input type="text" placeholder="Name of Member">
-            <select id="packageSelect">
+            <input type="text" id="paymentMember" placeholder="Name of Member">
+            <select id="packageSelect" onchange="app.onPackageChange(this, 'priceInput')">
                 <option value="">Chọn gói tập</option>
-                <option value="500000">1 tháng</option>
-                <option value="1200000">3 tháng</option>
-                <option value="3000000">6 tháng</option>
-                <option value="5000000">1 năm</option> </select>
+            </select>
             <input type="text" id="priceInput" placeholder="Price" readonly>
         </div>
-        <div class="form-row-between">
-            <input type="date" class="date-input">
-            <button id="btnQR" class="btn-purple">Mã thanh toán</button>
+        <div class="form-grid-three">
+            <input type="date" id="paymentDate" class="date-input">
+            <select id="paymentMethod" >
+                <option value="Tiền mặt">Tiền mặt</option>
+                <option value="Chuyển khoản">Chuyển khoản</option>
+                <option value="Thẻ">Thẻ</option>
+            </select>
         </div>
         <div class="form-actions-right">
-            <button class="btn-primary">Save</button>
+            <button class="btn-primary" onclick="app.savePayment()">Save</button>
             <button class="btn-cancel">Cancel</button>
+            <button class="btn-purple" onclick="app.showQR()">Mã thanh toán</button>
         </div>
     </div>
 
@@ -71,15 +72,7 @@
                 <th>Payment type</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td>Phạm Thành Đạt</td>
-                <td>HV001</td>
-                <td>1 tháng</td>
-                <td>Mar 01</td>
-                <td>Tiền mặt</td>
-            </tr>
-            </tbody>
+            <tbody id="paymentTbody"></tbody>
         </table>
     </div>
 </main>
@@ -91,35 +84,17 @@
     </div>
 </div>
 </body>
+<script src="../js/Receptionist.js"></script>
 <script>
-    const packageSelect = document.getElementById('packageSelect');
-    const priceInput = document.getElementById('priceInput');
+    const app = new ReceptionistApp();
 
-    packageSelect.addEventListener('change', function() {
-        const selectedPrice = this.value;
-        if (selectedPrice) {
-            const formattedPrice = new Intl.NumberFormat('vi-VN').format(selectedPrice);
-            priceInput.value = formattedPrice + " VNĐ";
-        } else {
-            priceInput.value = "";
-        }
-    });
-    const btnShowQR = document.getElementById('btnQR');
-    const qrModal = document.getElementById('qrModal');
-    const closeModal = document.getElementById('closeModal');
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
 
-    btnShowQR.addEventListener('click', function() {
-        qrModal.style.display = "block";
-    });
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
 
-    closeModal.addEventListener('click', function() {
-        qrModal.style.display = "none";
-    });
-
-    window.onclick = function(event) {
-        if (event.target == qrModal) {
-            qrModal.style.display = "none";
-        }
-    }
+    window.onload = () => app.loadPayments('paymentTbody');
 </script>
-</html></html>
+</html>
+</html>

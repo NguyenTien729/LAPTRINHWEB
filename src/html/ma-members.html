@@ -36,7 +36,6 @@
             <h3>Gym Members</h3>
             <div class="search-box-container">
                 <input type="text" placeholder="Search" class="table-search">
-                <span class="search-icon">🔍</span>
             </div>
         </div>
         <table>
@@ -54,36 +53,39 @@
 <div id="memberModal" class="modal">
     <div class="modal-content member-detail-modal">
         <div class="modal-header-row">
-            <h2 class="modal-title">Detail: <span id="modalMemberId">HV001</span></h2>
+            <h2 class="modal-title">Edit: <span id="modalMemberId">HV001</span></h2>
             <button class="btn-close-box" onclick="app.closeMemberModal()">X</button>
         </div>
+
         <div class="modal-body">
             <div class="input-group">
                 <label>Name:</label>
-                <input type="text" id="memberFullname" class="input-readonly" readonly>
+                <input type="text" id="memberFullname" >
             </div>
+
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Date of birth:</label>
-                    <input type="text" id="memberDob" class="input-readonly" readonly>
+                    <input type="text" id="memberDob" >
                 </div>
                 <div class="input-group">
                     <label>Gender:</label>
-                    <input type="text" id="memberGender" class="input-readonly" readonly>
+                    <input type="text" id="memberGender" >
                 </div>
             </div>
+
             <div class="input-group">
                 <label>Contact no.:</label>
-                <input type="text" id="memberContact" class="input-readonly" readonly>
+                <input type="text" id="memberContact" >
             </div>
         </div>
+
         <div class="modal-footer">
             <button class="btn-delete-rect" onclick="app.deleteMember(document.getElementById('modalMemberId').innerText)">Delete</button>
-            <button class="btn-edit-rect">Edit</button>
+            <button class="btn-save-changes" onclick="app.updateMember()">Save changes</button>
         </div>
     </div>
 </div>
-
 <script src="../js/Manager.js"></script>
 <script>
     const app = new ManagerApp();
@@ -95,4 +97,5 @@
     window.onload = () => app.loadMembers('memberTbody');
 </script>
 </body>
+
 </html>

@@ -35,10 +35,17 @@
     <div class="card payment-form">
         <div class="form-grid-three">
             <input type="text" id="paymentMember" placeholder="Name of Member">
-            <select id="packageSelect" onchange="app.onPackageChange(this, 'priceInput')">
+            <select id="packageSelect" onchange="app.onPackageChange(this)">
                 <option value="">Chọn gói tập</option>
             </select>
             <input type="text" id="priceInput" placeholder="Price" readonly>
+        </div>
+        <div class="form-grid-three">
+            <select id="scheduleSelect" onchange="app.onScheduleChange(this)">
+                <option value="">Chọn HLV & Lịch tập</option>
+            </select>
+            <input type="text" id="timeDisplay" placeholder="Giờ tập" readonly>
+            <input type="text" id="daysDisplay" placeholder="Thứ trong tuần" readonly>
         </div>
         <div class="form-grid-three">
             <input type="date" id="paymentDate" class="date-input">
@@ -86,7 +93,10 @@
 
     document.getElementById('sidebarName').textContent  = name;
     document.getElementById('sidebarEmail').textContent = email;
-    window.onload = () => app.loadPayments('paymentTbody');
+    window.onload = () => {
+        app.loadPayments();
+        app.iniPayment()
+    }
 </script>
 </body>
 </html>

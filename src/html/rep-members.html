@@ -13,8 +13,8 @@
         <div class="avatar-circle">
             <img src="" alt="Avatar">
         </div>
-        <p class="user-name">Trần Thu Hà</p>
-        <p class="user-email">lt01@gym.com</p>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="rep-profile.html" class="nav-item">Profile</a>
@@ -41,7 +41,6 @@
             <h3>Gym Members</h3>
             <div class="search-box-container">
                 <input type="text" placeholder="Search" class="table-search">
-                <span class="search-icon">🔍</span>
             </div>
         </div>
 
@@ -55,22 +54,7 @@
                 <th>Actions</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td>Phạm Thành Đạt</td>
-                <td>HV001</td>
-                <td>Feb 01</td>
-                <td>Mar 01</td>
-                <td><button class="btn-detail-pill" onclick="openMemberModal('HV001', 'Phạm Thành Đạt', '01-01-2000', 'Nam', '0909000001')">Detail</button></td>
-            </tr>
-            <tr>
-                <td>Nguyễn Mai Anh</td>
-                <td>HV002</td>
-                <td>Feb 02</td>
-                <td>May 02</td>
-                <td><button class="btn-detail-pill" onclick="openMemberModal('HV002', 'Nguyễn Mai Anh', '15-05-1998', 'Nữ', '0908888888')">Detail</button></td>
-            </tr>
-            </tbody>
+            <tbody id="memberTbody"></tbody>
         </table>
 
         <div class="table-footer">
@@ -83,66 +67,50 @@
 <div id="memberModal" class="modal">
     <div class="modal-content member-detail-modal">
         <div class="modal-header-row">
-            <h2 class="modal-title">Detail: <span id="modalMemberId">HV001</span></h2>
-            <button class="btn-close-box" onclick="closeMemberModal()">X</button>
+            <h2 class="modal-title">Edit: <span id="modalMemberId">HV001</span></h2>
+            <button class="btn-close-box" onclick="app.closeMemberModal()">X</button>
         </div>
 
         <div class="modal-body">
             <div class="input-group">
                 <label>Name:</label>
-                <input type="text" id="memberFullname" class="input-readonly" readonly>
+                <input type="text" id="memberFullname" >
             </div>
 
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Date of birth:</label>
-                    <input type="text" id="memberDob" class="input-readonly" readonly>
+                    <input type="text" id="memberDob" >
                 </div>
                 <div class="input-group">
                     <label>Gender:</label>
-                    <input type="text" id="memberGender" class="input-readonly" readonly>
+                    <input type="text" id="memberGender" >
                 </div>
             </div>
 
             <div class="input-group">
                 <label>Contact no.:</label>
-                <input type="text" id="memberContact" class="input-readonly" readonly>
+                <input type="text" id="memberContact" >
             </div>
         </div>
 
         <div class="modal-footer">
-            <button class="btn-delete-rect">Delete</button>
-            <button class="btn-edit-rect">Edit</button>
+            <button class="btn-delete-rect" onclick="app.deleteMember(document.getElementById('modalMemberId').innerText)">Delete</button>
+            <button class="btn-save-changes" onclick="app.u">Save changes</button>
         </div>
     </div>
 </div>
 </body>
-
+<script src="../js/Receptionist.js"></script>
 <script>
-    function openMemberModal(id, name, dob, gender, contact) {
-        const modal = document.getElementById('memberModal');
+    const app = new ReceptionistApp();
 
-        // Gán dữ liệu vào các thẻ
-        document.getElementById('modalMemberId').innerText = id;
-        document.getElementById('memberFullname').value = name;
-        document.getElementById('memberDob').value = dob;
-        document.getElementById('memberGender').value = gender;
-        document.getElementById('memberContact').value = contact;
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
 
-        // Hiển thị Modal
-        modal.style.display = "block";
-    }
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
 
-    function closeMemberModal() {
-        document.getElementById('memberModal').style.display = "none";
-    }
-
-    // Đóng modal khi click ra ngoài vùng trắng
-    window.onclick = function(event) {
-        let modal = document.getElementById('memberModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+    window.onload = () => app.loadMembers('memberTbody');
 </script>
 </html>
