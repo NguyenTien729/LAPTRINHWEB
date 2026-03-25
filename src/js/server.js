@@ -50,7 +50,7 @@ app.post('/login', (req, res) => {
 
 //API thêm nhân viên
 app.post('/api/staffs', (req, res) => {
-    const { staffId, name, dob, gender, contact, email, role_id } = req.body;
+    const { staffId, name, dob, gender, contact, email, role_id, pass } = req.body;
 
     db.beginTransaction(err => {
         if (err) return res.status(500).json({ success: false, message: err });
@@ -113,6 +113,27 @@ app.get('/api/staffs', (req, res) => {
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
         res.json(results);
+    });
+});
+app.get('/api/staffs/:id', (req, res) => {
+    const staffId = req.params.id;
+    const sql = `
+        SELECT 
+            nv.MaNV as staffId, 
+            nv.TenNV as name, 
+            u.UserName as username, 
+            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob, 
+            nv.GioiTinh as gender, 
+            nv.SDT as contact, 
+            nv.Email as email
+        FROM NHANVIEN nv
+        LEFT JOIN USER u ON nv.MaNV = u.MaNV
+        WHERE nv.MaNV = ?`;
+
+    db.query(sql, [staffId], (err, results) => {
+        if (err) return res.status(500).json({ error: err.message });
+        if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
+        res.json(results[0]);
     });
 });
 

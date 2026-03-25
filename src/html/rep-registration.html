@@ -7,14 +7,13 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-
 <aside class="sidebar">
     <div class="user-profile">
         <div class="avatar-circle">
             <img src="" alt="Avatar">
         </div>
-        <p class="user-name">Trần Thu Hà</p>
-        <p class="user-email">lt01@gym.com</p>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="rep-profile.html" class="nav-item">Profile</a>
@@ -38,38 +37,42 @@
         <div class="form-grid">
             <div class="input-group">
                 <label>Name of Participant</label>
-                <input type="text">
+                <input type="text" id="regName">
             </div>
             <div class="input-group">
-                <label>Date of Join</label>
-                <input type="date">
+                <label>Date of birth</label>
+                <input type="date" id="regDob">
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email">
+                <input type="email" id="regEmail">
             </div>
             <div class="input-group">
-                <label>Contact No.</label>
-                <input type="text">
-            </div>
-            <div class="input-group">
-                <label>Plan</label>
-                <select>
-                    <option>1 tháng</option>
-                    <option>3 tháng</option>
-                    <option>6 tháng</option>
+                <label>Gender</label>
+                <select id="regGender">
+                    <option value="Nam">Nam</option>
+                    <option value="Nữ">Nữ</option>
                 </select>
             </div>
             <div class="input-group">
-                <label>Price</label>
-                <input type="text" disabled>
+                <label>Contact No.</label>
+                <input type="text" id="regContact">
             </div>
         </div>
         <div class="form-actions">
-            <button class="btn-primary">Avail Membership</button>
-            <button class="btn-cancel">Cancel</button>
+            <button class="btn-primary" onclick="app.registerMember()">Avail Membership</button>
+            <button class="btn-cancel" onclick="document.querySelectorAll('#regName,#regEmail,#regContact').forEach(e=>e.value='')">Cancel</button>
         </div>
     </div>
 </main>
+<script src="../js/Receptionist.js"></script>
+<script>
+    const app = new ReceptionistApp();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
+</script>
 </body>
 </html>

@@ -7,12 +7,9 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="avatar-circle">
-            <img src="" alt="Avatar">
-        </div>
+        <div class="avatar-circle"><img src="" alt="Avatar"></div>
         <p class="user-name" id="sidebarName">...</p>
         <p class="user-email" id="sidebarEmail">...</p>
     </div>
@@ -46,23 +43,11 @@
 
         <table>
             <thead>
-            <tr>
-                <th># Name</th>
-                <th>Member ID</th>
-                <th>Date Enrolled</th>
-                <th>Date Expiration</th>
-                <th>Actions</th>
-            </tr>
+            <tr><th># Name</th><th>Member ID</th><th>Date Enrolled</th><th>Date Expiration</th><th>Actions</th></tr>
             </thead>
             <tbody id="memberTbody"></tbody>
         </table>
-
-        <div class="table-footer">
-            <button class="btn-pagination">Previous</button>
-            <button class="btn-pagination">Next</button>
-        </div>
     </div>
-
 </main>
 <div id="memberModal" class="modal">
     <div class="modal-content member-detail-modal">
@@ -100,17 +85,14 @@
         </div>
     </div>
 </div>
-</body>
 <script src="../js/Receptionist.js"></script>
 <script>
     const app = new ReceptionistApp();
-
     const name = localStorage.getItem('staffName') || '';
     const email = localStorage.getItem('staffEmail')   || '';
-
     document.getElementById('sidebarName').textContent  = name;
     document.getElementById('sidebarEmail').textContent = email;
-
     window.onload = () => app.loadMembers('memberTbody');
 </script>
+</body>
 </html>

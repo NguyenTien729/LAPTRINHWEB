@@ -34,20 +34,37 @@ class ManagerApp {
     // ── Profile ─────────────────────────────────────────────
 
     async loadProfile(staffId) {
-        const data = await this._req(`/api/staffs/${staffId}`);
-        this._set('profileUsername', data.username);
-        this._set('profileContact',  data.contact);
-        this._set('profileEmail',    data.email);
+        try{
+            const data = await this._req(`/api/staffs/${staffId}`);
+            this._txt('displayMasv', data.staffId);
+            this._txt('displayUsername', data.username);
+            this._txt('displayName', data.name);
+            this._txt('displayContact', data.contact);
+            this._txt('displayEmail', data.email);
+            this._txt('displayDob', data.dob);
+            this._txt('displayGender', data.gender);
+            this._set('profileUsername', data.username);
+            this._set('profileName',     data.name);
+            this._set('profileContact',  data.contact);
+            this._set('profileEmail',    data.email);
+            this._set('profileDob',      data.dob);
+        }catch (err){
+            alert("lỗi")
+        }
+
     }
 
     async saveProfile(staffId) {
         const data = {
             username: this._val('profileUsername'),
+            name: this._val('profileName'),
             contact:  this._val('profileContact'),
-            email:    this._val('profileEmail')
+            email: this._val('profileEmail'),
+            dob: this._val('profileDob'),
+            pass: this._val('profilePassword')
         };
         const result = await this._req(`/api/staffs/${staffId}`, 'PUT', data);
-        if (result.success) alert('Cập nhật thành công!');
+        if (result.success) alert('Cập nhật thành công');
         else alert('Lỗi: ' + result.message);
     }
 
@@ -219,7 +236,7 @@ class ManagerApp {
                 <td>${p.validity}</td>
                 <td>${Number(p.price).toLocaleString('vi-VN')}</td>
                 <td><button class="btn-edit-small"
-                    onclick="app.openPackageModal('${p.packageId}','${p.name}','${p.validity}','${p.price}')">✏️</button></td>
+                    onclick="app.openPackageModal('${p.packageid}','${p.name}','${p.validity}','${p.price}')">✏️</button></td>
             </tr>`;
         });
     }
@@ -465,18 +482,16 @@ class TrainerApp {
 
     // ── Profile ─────────────────────────────────────────────
 
-    async loadProfile(staffId) {
-        const data = await this._req(`/api/staffs/${staffId}`);
-        this._set('profileUsername', data.username);
-        this._set('profileContact',  data.contact);
-        this._set('profileEmail',    data.email);
-    }
+
 
     async saveProfile(staffId) {
         const data = {
             username: this._val('profileUsername'),
+            name: this._val('profileName'),
             contact:  this._val('profileContact'),
-            email:    this._val('profileEmail')
+            email: this._val('profileEmail'),
+            dob: this._val('profileDob'),
+            pass: this._val('profilePassword')
         };
         const result = await this._req(`/api/staffs/${staffId}`, 'PUT', data);
         if (result.success) alert('Cập nhật thành công!');

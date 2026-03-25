@@ -7,14 +7,11 @@
     <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="avatar-circle">
-            <img src="" alt="Avatar">
-        </div>
-        <p class="user-name">Trần Thu Hà</p>
-        <p class="user-email">lt01@gym.com</p>
+        <div class="avatar-circle"><img src="" alt="Avatar"></div>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="rep-profile.html" class="nav-item active">Profile</a>
@@ -37,34 +34,60 @@
 
     <div class="profile-layout">
         <div class="card info-card">
-            <div class="avatar-large">👤</div>
-            <button class="btn-outline">📝 Update Profile</button>
+            <div class="avatar-circle"></div>
             <div class="display-fields">
-                <p>Username: <span>lt01</span></p>
-                <p>Contact no: <span>0902222222</span></p>
-                <p>Email: <span>lt01@gmail.com</span></p>
+                <p>MaNV: <span id="displayMasv"></span></p>
+                <p>Username: <span id="displayUsername"></span></p>
+                <p>Name: <span id="displayName"></span></p>
+                <p>Contact no: <span id="displayContact"></span></p>
+                <p>Email: <span id="displayEmail"></span></p>
+                <p>Date of birth: <span id="displayDob"></span></p>
+                <p>Gender: <span id="displayGender"></span></p>
             </div>
         </div>
 
         <div class="card form-card">
             <div class="input-group">
                 <label>Username</label>
-                <input type="text" placeholder="lt01">
+                <input type="text" id="profileUsername">
+            </div>
+            <div class="input-group">
+                <label>Name</label>
+                <input type="text" id="profileName">
             </div>
             <div class="input-group">
                 <label>Contact No.</label>
-                <input type="text" placeholder="0902222222">
+                <input type="text" id="profileContact">
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email" placeholder="lt01@gmail.com">
+                <input type="email" id="profileEmail">
             </div>
-            <div class="form-actions">
-                <button class="btn-save-purple">Save</button>
+            <div class="input-group">
+                <label>dob</label>
+                <input type="date" id="profileDob">
             </div>
+            <div class="input-group">
+                <label>Password</label>
+                <input type="password" id="profilePassword">
+            </div>
+
+            <button class="btn-save-yellow" onclick="app.saveProfile()">Save</button>
         </div>
     </div>
 </main>
+<script src="../js/Receptionist.js"></script>
+<script>
+    const app = new ReceptionistApp();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
 
+    window.onload = () => {
+        const staffId = localStorage.getItem('staffId') || 'NV001';
+        app.loadProfile(staffId);
+    }
+</script>
 </body>
 </html>

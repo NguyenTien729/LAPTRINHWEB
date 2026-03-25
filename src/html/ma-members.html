@@ -40,16 +40,12 @@
         </div>
         <table>
             <thead>
-            <tr>
-                <th># Name</th><th>Member ID</th><th>Date Enrolled</th><th>Date Expiration</th><th>Actions</th>
-            </tr>
+            <tr><th># Name</th><th>Member ID</th><th>Date Enrolled</th><th>Date Expiration</th><th>Actions</th></tr>
             </thead>
             <tbody id="memberTbody"></tbody>
         </table>
-
     </div>
 </main>
-
 <div id="memberModal" class="modal">
     <div class="modal-content member-detail-modal">
         <div class="modal-header-row">
@@ -91,11 +87,9 @@
     const app = new ManagerApp();
     const name = localStorage.getItem('staffName') || '';
     const email = localStorage.getItem('staffEmail')   || '';
-
     document.getElementById('sidebarName').textContent  = name;
     document.getElementById('sidebarEmail').textContent = email;
     window.onload = () => app.loadMembers('memberTbody');
 </script>
 </body>
-
 </html>

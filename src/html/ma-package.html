@@ -32,36 +32,11 @@
     </div>
     <h2 class="page-title">Package Plan</h2>
 
-    <!-- Form thêm gói mới -->
-    <div class="card package-form-card">
-        <div class="form-grid-package">
-            <div class="input-group">
-                <label>Package Name</label>
-                <input type="text" id="newPkgName" placeholder="Nhập tên gói tập">
-            </div>
-            <div class="input-group">
-                <label>Validity (Month)</label>
-                <input type="number" id="newPkgValidity" placeholder="Số tháng">
-            </div>
-            <div class="input-group full-width">
-                <label>Amount</label>
-                <input type="text" id="newPkgAmount" placeholder="Giá tiền">
-            </div>
-        </div>
-        <div class="form-actions">
-            <button class="btn-save-yellow" onclick="app.openPackageModal('','','','')">Save</button>
-            <button class="btn-cancel">Cancel</button>
-        </div>
-    </div>
 
-    <!-- Bảng danh sách gói -->
+    <button class="btn-save-yellow" onclick="app.openPackageModal('','','','')">+ Add new package</button>
+
+
     <div class="card table-card">
-        <div class="table-header-tools">
-
-            <div class="search-box-container">
-                <input type="text" placeholder="Search" class="table-search">
-            </div>
-        </div>
         <table>
             <thead>
             <tr>
