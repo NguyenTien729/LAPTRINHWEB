@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -9,11 +10,9 @@
 <body>
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="user-avatar">
-            <img src="avatar-placeholder.png" alt="Avatar">
-        </div>
-        <p class="user-name">Nguyễn Hoàng Minh</p>
-        <p class="user-email">qlddgym@gmail.com</p>
+        <div class="user-avatar"><img src="" alt="Avatar"></div>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
@@ -27,100 +26,68 @@
         <a href="login.html" class="nav-item logout">Logout</a>
     </nav>
 </aside>
-
 <main class="main-content">
     <div class="header-logo-section">
         <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
         <h1>AGym</h1>
     </div>
     <h2 class="page-title">Add Payment</h2>
-
     <div class="card payment-form">
         <div class="form-grid-three">
-            <input type="text" placeholder="Name of Member">
-            <select id="packageSelect">
+            <input type="text" id="paymentMember" placeholder="Name of Member">
+            <select id="packageSelect" onchange="app.onPackageChange(this, 'priceInput')">
                 <option value="">Chọn gói tập</option>
-                <option value="500000">1 tháng</option>
-                <option value="1200000">3 tháng</option>
-                <option value="3000000">6 tháng</option>
-                <option value="5000000">1 năm</option> </select>
+            </select>
             <input type="text" id="priceInput" placeholder="Price" readonly>
         </div>
-        <div class="form-row-between">
-            <input type="date" class="date-input">
-            <button id="btnQR" class="btn-purple">Mã thanh toán</button>
+        <div class="form-grid-three">
+            <input type="date" id="paymentDate" class="date-input">
+            <select id="paymentMethod" >
+                <option value="Tiền mặt">Tiền mặt</option>
+                <option value="Chuyển khoản">Chuyển khoản</option>
+                <option value="Thẻ">Thẻ</option>
+            </select>
         </div>
         <div class="form-actions-right">
-            <button class="btn-primary">Save</button>
+            <button class="btn-primary" onclick="app.savePayment()">Save</button>
             <button class="btn-cancel">Cancel</button>
+            <button class="btn-purple" onclick="app.showQR()">Mã thanh toán</button>
         </div>
     </div>
-
     <div class="card table-section">
         <h3>Payment</h3>
         <div class="table-tools">
-            <label>Show Entities <select><option>4</option></select></label>
             <input type="text" placeholder="Search" class="search-table">
         </div>
         <table>
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Member ID</th>
-                <th>Package</th>
-                <th>Payment date</th>
-                <th>Payment type</th>
+                <th>Name</th><th>Member ID</th><th>Package</th><th>Payment date</th><th>Payment type</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td>Phạm Thành Đạt</td>
-                <td>HV001</td>
-                <td>1 tháng</td>
-                <td>Mar 01</td>
-                <td>Tiền mặt</td>
-            </tr>
-            </tbody>
+            <tbody id="paymentTbody"></tbody>
         </table>
     </div>
 </main>
-    <div id="qrModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.7);">
-        <div style="position: relative; margin: 10% auto; padding: 20px; width: 300px; background: white; border-radius: 8px; text-align: center;">
-            <span id="closeModal" style="position: absolute; right: 10px; top: 5px; cursor: pointer; font-size: 24px;">&times;</span>
-            <h3>Quét mã để thanh toán</h3>
-            <img src="assets/QR.jpg" alt="QR Code" style="width: 100%; height: auto; margin-top: 10px;">
-        </div>
+
+<div id="qrModal" class="modal" >
+    <div style="position:relative; margin:10% auto; padding:20px; width:300px; background:white; border-radius:8px; text-align:center;">
+        <span onclick="app.hideQR()" style="position:absolute; right:10px; top:5px; cursor:pointer; font-size:24px;">&times;</span>
+        <h3>Quét mã để thanh toán</h3>
+        <img src="assets/QR.jpg" alt="QR Code" style="width:100%; height:auto; margin-top:10px;">
     </div>
+</div>
+
+<script src="../js/Manager.js"></script>
+<script>
+    const app = new ManagerApp();
+    const name = localStorage.getItem('staffName') || 'áda';
+    const email = localStorage.getItem('staffEmail')   || 'adsđ';
+
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
+    window.onload = () => app.loadPayments('paymentTbody');
+</script>
 </body>
-    <script>
-        const packageSelect = document.getElementById('packageSelect');
-        const priceInput = document.getElementById('priceInput');
-
-        packageSelect.addEventListener('change', function() {
-            const selectedPrice = this.value;
-            if (selectedPrice) {
-                const formattedPrice = new Intl.NumberFormat('vi-VN').format(selectedPrice);
-                priceInput.value = formattedPrice + " VNĐ";
-            } else {
-                priceInput.value = "";
-            }
-        });
-        const btnShowQR = document.getElementById('btnQR');
-        const qrModal = document.getElementById('qrModal');
-        const closeModal = document.getElementById('closeModal');
-
-        btnShowQR.addEventListener('click', function() {
-            qrModal.style.display = "block";
-        });
-
-        closeModal.addEventListener('click', function() {
-            qrModal.style.display = "none";
-        });
-
-        window.onclick = function(event) {
-            if (event.target == qrModal) {
-                qrModal.style.display = "none";
-            }
-        }
-    </script>
 </html>
+

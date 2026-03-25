@@ -10,10 +10,10 @@
 <aside class="sidebar">
     <div class="user-profile">
         <div class="user-avatar">
-            <img src="avatar-placeholder.png" alt="Avatar">
+            <img src="" alt="Avatar">
         </div>
-        <p class="user-name">Nguyễn Hoàng Minh</p>
-        <p class="user-email">qly01@gmail.com</p>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="ma-dashboard.html" class="nav-item active">Dashboard</a>
@@ -41,7 +41,7 @@
     </header>
 
     <section class="welcome-banner">
-        <h2>Welcome to AGym, manager <span class="highlight">Minh</span></h2>
+        <h2>Welcome to AGym, manager <span class="highlight" id="welcome">...</span></h2>
         <p>Manage members, trainers, and payments efficiently.</p>
     </section>
 
@@ -51,9 +51,7 @@
                 <h3>Trainer</h3>
                 <span class="menu-dots">⋮</span>
             </div>
-            <div class="list-item"><span class="dot"></span> Gia Bảo</div>
-            <div class="list-item"><span class="dot"></span> Ngọc Anh</div>
-            <div class="list-item"><span class="dot"></span> Quốc Huy</div>
+            <div id="dashTrainerList"></div>
         </div>
 
         <div class="card">
@@ -84,24 +82,22 @@
                 <th>Status</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td><div class="sm-avatar"></div></td>
-                <td>Phạm Thành Đạt</td>
-                <td>Feb 01</td>
-                <td>Mar 01</td>
-                <td><span class="status-active">Active</span></td>
-            </tr>
-            <tr>
-                <td><div class="sm-avatar"></div></td>
-                <td>Nguyễn Mai Anh</td>
-                <td>Feb 02</td>
-                <td>May 02</td>
-                <td><span class="status-active">Active</span></td>
-            </tr>
-            </tbody>
+            <tbody id="dashMemberTbody"></tbody>
         </table>
     </div>
 </main>
 </body>
+<script src="../js/Manager.js"></script>
+<script>
+    const app = new ManagerApp();
+
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
+    document.getElementById('welcome').textContent = name;
+
+    window.onload = () => app.loadDashboard();
+</script>
 </html>

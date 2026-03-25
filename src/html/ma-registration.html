@@ -9,11 +9,9 @@
 <body>
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="user-avatar">
-            <img src="avatar-placeholder.png" alt="Avatar">
-        </div>
-        <p class="user-name">Nguyễn Hoàng Minh</p>
-        <p class="user-email">qlddgym@gmail.com</p>
+        <div class="user-avatar"><img src="avatar-placeholder.png" alt="Avatar"></div>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
@@ -27,50 +25,59 @@
         <a href="login.html" class="nav-item logout">Logout</a>
     </nav>
 </aside>
-
 <main class="main-content">
     <div class="header-logo-section">
         <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
         <h1>AGym</h1>
     </div>
     <h2 class="page-title">Register</h2>
-
     <div class="card registration-form">
         <div class="form-grid">
             <div class="input-group">
                 <label>Name of Participant</label>
-                <input type="text">
+                <input type="text" id="regName">
             </div>
             <div class="input-group">
                 <label>Date of Join</label>
-                <input type="date">
+                <input type="date" id="regDate">
             </div>
             <div class="input-group">
                 <label>Email Address</label>
-                <input type="email">
+                <input type="email" id="regEmail">
             </div>
             <div class="input-group">
                 <label>Contact No.</label>
-                <input type="text">
+                <input type="text" id="regContact">
             </div>
             <div class="input-group">
                 <label>Plan</label>
-                <select>
-                    <option>1 tháng</option>
-                    <option>3 tháng</option>
-                    <option>6 tháng</option>
+                <select id="regPlan">
+                    <option value="1">1 tháng</option>
+                    <option value="3">3 tháng</option>
+                    <option value="6">6 tháng</option>
+                    <option value="12">1 năm</option>
                 </select>
             </div>
             <div class="input-group">
                 <label>Price</label>
-                <input type="text" disabled>
+                <input type="text" id="regPrice" disabled>
             </div>
         </div>
         <div class="form-actions">
-            <button class="btn-primary">Avail Membership</button>
-            <button class="btn-cancel">Cancel</button>
+            <button class="btn-primary" onclick="app.registerMember()">Avail Membership</button>
+            <button class="btn-cancel" onclick="document.querySelectorAll('#regName,#regEmail,#regContact').forEach(e=>e.value='')">Cancel</button>
         </div>
     </div>
 </main>
+
+<script src="../js/Manager.js"></script>
+<script>
+    const app = new ManagerApp();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
+</script>
 </body>
 </html>

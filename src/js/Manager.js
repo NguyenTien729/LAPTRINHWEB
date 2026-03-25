@@ -1,0 +1,462 @@
+const API_BASE = 'http://localhost:3000';
+
+
+class ManagerApp {
+    constructor() {
+        this.apiBase = API_BASE;
+        this.isEditMode = false;
+        this._currentPackageId = null;
+
+        window.onclick = (e) => {
+            ['memberModal','trainerModal','editModal','qrModal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && e.target === el) this._hide(id);
+            });
+        };
+    }
+
+    // ── Tiện ích ────────────────────────────────────────────
+
+    async _req(endpoint, method = 'GET', body = null) {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(`${this.apiBase}${endpoint}`, opts);
+        if (!res.ok) throw new Error(`Lỗi ${res.status}`);
+        return res.json();
+    }
+
+    _show(id)  { const el = document.getElementById(id); if (el) el.style.display = 'block'; }
+    _hide(id)  { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+    _val(id)   { const el = document.getElementById(id); return el ? el.value : ''; }
+    _set(id, v){ const el = document.getElementById(id); if (el) el.value = v ?? ''; }
+    _txt(id, v){ const el = document.getElementById(id); if (el) el.textContent = v ?? ''; }
+    _fmtMoney(v){ return Number(v).toLocaleString('vi-VN') + ' VNĐ'; }
+
+    // ── Profile ─────────────────────────────────────────────
+
+    async loadProfile(staffId) {
+        const data = await this._req(`/api/staffs/${staffId}`);
+        this._set('profileUsername', data.username);
+        this._set('profileContact',  data.contact);
+        this._set('profileEmail',    data.email);
+    }
+
+    async saveProfile(staffId) {
+        const data = {
+            username: this._val('profileUsername'),
+            contact:  this._val('profileContact'),
+            email:    this._val('profileEmail')
+        };
+        const result = await this._req(`/api/staffs/${staffId}`, 'PUT', data);
+        if (result.success) alert('Cập nhật thành công!');
+        else alert('Lỗi: ' + result.message);
+    }
+
+    // ── Members ─────────────────────────────────────────────
+
+    async loadMembers(tbodyId = 'memberTbody') {
+        const members = await this._req('/api/members');
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        members.forEach(m => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${m.name}</td>
+                <td>${m.memberid}</td>
+                <td>${m.date_enrolled ?? ''}</td>
+                <td>${m.date_expiry ?? ''}</td>
+                <td><button class="btn-detail-pill"
+                    onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                    Detail</button></td>
+            </tr>`;
+        });
+    }
+
+    openMemberModal(id, name, dob, gender, contact) {
+        this._txt('modalMemberId', id);
+        this._set('memberFullname', name);
+        this._set('memberDob',      dob);
+        this._set('memberGender',   gender);
+        this._set('memberContact',  contact);
+        this._show('memberModal');
+    }
+
+    closeMemberModal() { this._hide('memberModal'); }
+
+    async deleteMember(memberId) {
+        if (!confirm(`Xóa hội viên ${memberId}?`)) return;
+        const result = await this._req(`/api/members/${memberId}`, 'DELETE');
+        if (result.success) { this.closeMemberModal(); this.loadMembers(); }
+    }
+
+    // ── Trainer ─────────────────────────────────────────────
+
+    async loadTrainers(tbodyId = 'trainerTbody') {
+        const trainers = await this._req('/api/trainers');
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        trainers.forEach(t => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.staffid}</td>
+                <td>${t.contact}</td>
+                <td>${t.specialty}</td>
+                <td><button class="btn-detail-small"
+                    onclick="app.openTrainerModal('${t.staffid}','${t.name}','${t.dob}','${t.gender}','${t.contact}','${t.specialty}')">
+                    Detail</button></td>
+            </tr>`;
+        });
+    }
+
+    openTrainerModal(id, name, dob, gender, contact, specialty) {
+        this._txt('modalTrainerId', id);
+        this._set('modalName',      name);
+        this._set('modalDob',       dob);
+        this._set('modalGender',    gender);
+        this._set('modalContact',   contact);
+        this._set('modalSpecialty', specialty);
+        this._show('trainerModal');
+    }
+
+    closeTrainerModal() { this._hide('trainerModal'); }
+
+
+    async loadDashboard() {
+        const [members, trainers] = await Promise.all([
+            this._req('/api/members'),
+            this._req('/api/trainers')
+        ]);
+
+        const tbody = document.getElementById('dashMemberTbody');
+        if (tbody) {
+            tbody.innerHTML = '';
+            members.forEach(m => {
+                tbody.innerHTML += `
+                <tr>
+                    <td><div class="sm-avatar"></div></td>
+                    <td>${m.name}</td>
+                    <td>${m.date_enrolled ?? ''}</td>
+                    <td>${m.date_expiry ?? ''}</td>
+                    <td><span class="status-active">Active</span></td>
+                </tr>`;
+            });
+        }
+
+        const trainerList = document.getElementById('dashTrainerList');
+        if (trainerList) {
+            trainerList.innerHTML = '';
+            trainers.forEach(t => {
+                trainerList.innerHTML += `<div class="list-item"><span class="dot"></span> ${t.name}</div>`;
+            });
+        }
+    }
+
+
+
+    // ── Payment ─────────────────────────────────────────────
+
+    async loadPayments(tbodyId = 'paymentTbody') {
+        const payments = await this._req('/api/payments');
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        payments.forEach(p => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.memberid}</td>
+                <td>${p.package}</td>
+                <td>${p.date_paid}</td>
+                <td>${p.payment_type}</td>
+            </tr>`;
+        });
+    }
+
+    async savePayment() {
+        const data = {
+            memberName:  this._val('paymentMember'),
+            packageId:   this._val('packageSelect'),
+            date:        this._val('paymentDate'),
+            paymentType: 'Tiền mặt'
+        };
+        const result = await this._req('/api/payments', 'POST', data);
+        if (result.success) { alert('Lưu thành công!'); this.loadPayments(); }
+        else alert('Lỗi: ' + result.message);
+    }
+
+    onPackageChange(selectEl, priceInputId) {
+        const el = document.getElementById(priceInputId);
+        if (el) el.value = selectEl.value ? this._fmtMoney(selectEl.value) : '';
+    }
+
+    showQR() { this._show('qrModal'); }
+    hideQR() { this._hide('qrModal'); }
+
+    // ── Package ─────────────────────────────────────────────
+
+    async loadPackages(tbodyId = 'packageTbody') {
+        const packages = await this._req('/api/packages');
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        packages.forEach(p => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${p.name}</td>
+                <td>${p.validity}</td>
+                <td>${Number(p.price).toLocaleString('vi-VN')}</td>
+                <td><button class="btn-edit-small"
+                    onclick="app.openPackageModal('${p.packageId}','${p.name}','${p.validity}','${p.price}')">✏️</button></td>
+            </tr>`;
+        });
+    }
+
+    openPackageModal(id, name, validity, amount) {
+        this.isEditMode = !!id;
+        this._currentPackageId = id;
+        this._txt('displayPackageName', name);
+        this._set('editPlanName', name);
+        this._set('editValidity', validity);
+        this._set('editAmount',   amount);
+        this._show('editModal');
+    }
+
+    closePackageModal() { this._hide('editModal'); }
+
+    async savePackage() {
+        const data = {
+            name:     this._val('editPlanName'),
+            validity: this._val('editValidity'),
+            price:    this._val('editAmount')
+        };
+        const url    = this.isEditMode ? `/api/packages/${this._currentPackageId}` : '/api/packages';
+        const method = this.isEditMode ? 'PUT' : 'POST';
+        const result = await this._req(url, method, data);
+        if (result.success) { this.closePackageModal(); this.loadPackages(); }
+        else alert('Lỗi: ' + result.message);
+    }
+
+    async deletePackage() {
+        if (!confirm('Xóa gói tập này?')) return;
+        const result = await this._req(`/api/packages/${this._currentPackageId}`, 'DELETE');
+        if (result.success) { this.closePackageModal(); this.loadPackages(); }
+    }
+
+    // ── Registration ─────────────────────────────────────────
+
+    async registerMember() {
+        const data = {
+            name:    this._val('regName'),
+            email:   this._val('regEmail'),
+            contact: this._val('regContact'),
+            plan:    this._val('regPlan'),
+            date:    this._val('regDate')
+        };
+        const result = await this._req('/api/members', 'POST', data);
+        if (result.success) alert('Đăng ký thành công!');
+        else alert('Lỗi: ' + result.message);
+    }
+
+    // ── Report ───────────────────────────────────────────────
+    async loadReport() {
+        const fromDate = document.getElementById('reportFrom').value;
+        const toDate = document.getElementById('reportTo').value;
+
+        // Validate
+        if (!fromDate || !toDate) {
+            alert("Vui lòng chọn khoảng thời gian!");
+            return;
+        }
+        if (new Date(fromDate) > new Date(toDate)) {
+            alert("Ngày bắt đầu phải nhỏ hơn ngày kết thúc!");
+            return;
+        }
+        try {
+            await this.loadRevenueTotal(fromDate, toDate);
+        } catch (error) {
+            console.error("bug doanh thu", error);
+            alert("Lỗi khi tính doanh thu!");
+        }
+    }
+
+    // ==================== API: TÍNH TỔNG DOANH THU ====================
+    async loadRevenueTotal(fromDate, toDate) {
+        try {
+            const url = `${this.apiBase}/api/revenue/total?from=${fromDate}&to=${toDate}`;
+            console.log("🔗 Calling API:", url);
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            if (result.success) {
+                const totalRevenue = result.data.totalRevenue || 0;
+                const totalTransactions = result.data.totalTransactions || 0;
+                document.getElementById('reportTotal').textContent =
+                    totalRevenue.toLocaleString('vi-VN') + ' VNĐ';
+
+            } else {
+                console.error("❌ Lỗi API:", result.message);
+                document.getElementById('reportTotal').textContent = '0 VNĐ';
+                alert(result.message || "Lỗi khi tính doanh thu!");
+            }
+        } catch (error) {
+            console.error("❌ Lỗi fetch revenue:", error);
+            document.getElementById('reportTotal').textContent = 'Lỗi';
+            alert("Không thể kết nối đến server. Vui lòng kiểm tra:\n1. Server đã chạy chưa (node server.js)\n2. URL API đúng chưa");
+        }
+    }
+
+    // ==================== TIỆN ÍCH: SET NGÀY MẶC ĐỊNH ====================
+    setDefaultDates() {
+        const today = new Date();
+        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+        const formatDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        document.getElementById('reportFrom').value = formatDate(firstDayOfMonth);
+        document.getElementById('reportTo').value = formatDate(today);
+
+    }
+}
+
+// =============================================================
+//  TRAINER APP (CV02) - Huấn luyện viên
+//  Trang: trainer-profile, trainer-schedule, trainer-trainer
+// =============================================================
+class TrainerApp {
+    constructor() {
+        this.apiBase = API_BASE;
+
+        window.onclick = (e) => {
+            ['memberDetailModal', 'trainerModal'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el && e.target === el) this._hide(id);
+            });
+        };
+    }
+
+    // ── Tiện ích ────────────────────────────────────────────
+
+    async _req(endpoint, method = 'GET', body = null) {
+        const opts = { method, headers: { 'Content-Type': 'application/json' } };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(`${this.apiBase}${endpoint}`, opts);
+        if (!res.ok) throw new Error(`Lỗi ${res.status}`);
+        return res.json();
+    }
+
+    _show(id)  { const el = document.getElementById(id); if (el) el.style.display = 'block'; }
+    _hide(id)  { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+    _val(id)   { const el = document.getElementById(id); return el ? el.value : ''; }
+    _set(id, v){ const el = document.getElementById(id); if (el) el.value = v ?? ''; }
+    _txt(id, v){ const el = document.getElementById(id); if (el) el.textContent = v ?? ''; }
+
+    // ── Profile ─────────────────────────────────────────────
+
+    async loadProfile(staffId) {
+        const data = await this._req(`/api/staffs/${staffId}`);
+        this._set('profileUsername', data.username);
+        this._set('profileContact',  data.contact);
+        this._set('profileEmail',    data.email);
+    }
+
+    async saveProfile(staffId) {
+        const data = {
+            username: this._val('profileUsername'),
+            contact:  this._val('profileContact'),
+            email:    this._val('profileEmail')
+        };
+        const result = await this._req(`/api/staffs/${staffId}`, 'PUT', data);
+        if (result.success) alert('Cập nhật thành công!');
+        else alert('Lỗi: ' + result.message);
+    }
+
+    // ── Schedule ─────────────────────────────────────────────
+
+    async loadSchedule(trainerId, tbodyId = 'scheduleTbody') {
+        const members = await this._req(`/api/schedule/${trainerId}`);
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        members.forEach((m, i) => {
+            const scheduleType = m.schedule_type ?? String((i % 2) + 1);
+            tbody.innerHTML += `
+            <tr data-schedule="${scheduleType}">
+                <td>${m.name}</td>
+                <td>${m.memberid}</td>
+                <td>${m.date_enrolled ?? ''}</td>
+                <td>${m.date_expiry ?? ''}</td>
+                <td><button class="btn-detail-pill"
+                    onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                    Detail</button></td>
+            </tr>`;
+        });
+    }
+
+    filterSchedule(type) {
+        document.querySelectorAll('#memberTable tbody tr').forEach(row => {
+            const t = row.getAttribute('data-schedule');
+            row.style.display = (type === 'all' || t === type) ? '' : 'none';
+        });
+    }
+
+    openMemberModal(id, name, dob, gender, contact) {
+        this._txt('displayMemberId', id);
+        this._set('detailName',    name);
+        this._set('detailDob',     dob);
+        this._set('detailGender',  gender);
+        this._set('detailContact', contact);
+        this._show('memberDetailModal');
+    }
+
+    closeMemberModal() { this._hide('memberDetailModal'); }
+
+    // ── Trainer (xem đồng nghiệp) ───────────────────────────
+
+    async loadTrainers(tbodyId = 'trainerTbody') {
+        const trainers = await this._req('/api/trainers');
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        trainers.forEach(t => {
+            tbody.innerHTML += `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.staffid}</td>
+                <td>${t.contact}</td>
+                <td>${t.specialty ?? 'N/A'}</td>
+                <td><button class="btn-detail-small"
+                    onclick="app.openTrainerModal('${t.staffid}','${t.name}','${t.dob}','${t.gender}','${t.contact}','${t.specialty}')">
+                    Detail</button></td>
+            </tr>`;
+        });
+    }
+
+    openTrainerModal(id, name, dob, gender, contact, specialty) {
+        this._txt('modalTrainerId', id);
+        this._set('modalName',      name);
+        this._set('modalDob',       dob);
+        this._set('modalGender',    gender);
+        this._set('modalContact',   contact);
+        this._set('modalSpecialty', specialty);
+        this._show('trainerModal');
+    }
+
+    closeTrainerModal() { this._hide('trainerModal'); }
+}
+
+
+

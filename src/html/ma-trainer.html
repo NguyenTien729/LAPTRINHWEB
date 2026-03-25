@@ -9,11 +9,9 @@
 <body>
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="user-avatar">
-            <img src="avatar-placeholder.png" alt="Avatar">
-        </div>
-        <p class="user-name">Nguyễn Hoàng Minh</p>
-        <p class="user-email">qlddgym@gmail.com</p>
+        <div class="user-avatar"><img src="avatar-placeholder.png" alt="Avatar"></div>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="ma-dashboard.html" class="nav-item">Dashboard</a>
@@ -27,72 +25,42 @@
         <a href="login.html" class="nav-item logout">Logout</a>
     </nav>
 </aside>
-
 <main class="main-content">
     <div class="header-logo-section">
         <img src="assets/logo_small.png" alt="AGym Logo" class="app-logo">
         <h1>AGym</h1>
     </div>
-
     <h2 class="page-title">Active Trainer</h2>
-
     <div class="card table-card">
-        <div class="card-header">
-            <h3>Manage Coaches</h3>
-        </div>
-
+        <div class="card-header"><h3>Manage Coaches</h3></div>
         <div class="table-tools">
-            <div class="show-entries">
-                Show Entities
-                <select><option>10</option></select>
-            </div>
+
             <div class="search-box-container">
                 <input type="text" placeholder="Search" class="table-search">
             </div>
         </div>
-
         <table>
             <thead>
             <tr>
-                <th># Name</th>
-                <th>Trainer ID</th>
-                <th>Contact</th>
-                <th>Specialty</th>
-                <th>Actions</th>
+                <th># Name</th><th>Trainer ID</th><th>Contact</th><th>Specialty</th><th>Actions</th>
             </tr>
             </thead>
-            <tbody>
-            <tr>
-                <td>Phạm Gia Bảo</td>
-                <td>NV004</td>
-                <td>0904444444</td>
-                <td>Gym</td>
-                <td><button class="btn-detail-small" onclick="openTrainerModal('NV004', 'Phạm Thành Đạt', '01-01-2000', 'Nam', '0909000001', 'Gym')">Detail</button></td>
-            </tr>
-            <tr>
-                <td>Nguyễn Ngọc Anh</td>
-                <td>NV005</td>
-                <td>0905555555</td>
-                <td>Yoga</td>
-                <td><button class="btn-detail-small">Detail</button></td>
-            </tr>
-            </tbody>
+            <tbody id="trainerTbody"></tbody>
         </table>
     </div>
 </main>
+
 <div id="trainerModal" class="modal">
     <div class="modal-content coach-detail-modal">
         <div class="modal-header-row">
             <h2 class="modal-title">Detail: <span id="modalTrainerId">NV004</span></h2>
-            <button class="btn-close-x" onclick="closeTrainerModal()">X</button>
+            <button class="btn-close-x" onclick="app.closeTrainerModal()">X</button>
         </div>
-
         <div class="modal-body">
             <div class="input-group">
                 <label>Name:</label>
                 <input type="text" id="modalName" readonly>
             </div>
-
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Date of birth:</label>
@@ -103,7 +71,6 @@
                     <input type="text" id="modalGender" readonly>
                 </div>
             </div>
-
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Contact no.:</label>
@@ -114,40 +81,19 @@
                     <input type="text" id="modalSpecialty" readonly>
                 </div>
             </div>
-
-            <div class="input-group">
-                <label>Teaching schedule:</label>
-                <div class="schedule-box">
-                    <p>Monday - Wednesday - Friday | 6AM - 10AM</p>
-                    <p>Tuesday - Thursday - Saturday | 2PM - 6PM</p>
-                </div>
-            </div>
         </div>
     </div>
 </div>
-</body>
+
+<script src="../js/Manager.js"></script>
 <script>
-    function openTrainerModal(id, name, dob, gender, contact, specialty) {
-        document.getElementById('modalTrainerId').innerText = id;
-        document.getElementById('modalName').value = name;
-        document.getElementById('modalDob').value = dob;
-        document.getElementById('modalGender').value = gender;
-        document.getElementById('modalContact').value = contact;
-        document.getElementById('modalSpecialty').value = specialty;
+    const app = new ManagerApp();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
 
-        document.getElementById('trainerModal').style.display = "block";
-    }
-
-    function closeTrainerModal() {
-        document.getElementById('trainerModal').style.display = "none";
-    }
-
-    // Đóng modal khi click ra ngoài
-    window.onclick = function(event) {
-        let modal = document.getElementById('trainerModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
+    window.onload = () => app.loadTrainers('trainerTbody');
 </script>
+</body>
 </html>
