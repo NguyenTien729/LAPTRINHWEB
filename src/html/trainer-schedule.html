@@ -13,8 +13,8 @@
         <div class="avatar-circle">
             <img src="" alt="Avatar">
         </div>
-        <p class="user-name">Phạm Gia Bảo</p>
-        <p class="user-email">hlv01@gym.com</p>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="trainer-profile.html" class="nav-item">Profile</a>
@@ -29,23 +29,14 @@
         <img src="../img/logo.png" alt="AGym Logo" class="app-logo">
         <h1>AGym</h1>
     </div>
-
-    <h2 class="page-title">Schedule:</h2>
-
     <div class="schedule-filter-container">
-        <button class="btn-schedule" onclick="filterSchedule('1')">Monday - Wednesday - Friday | 6AM - 10AM</button>
-        <button class="btn-schedule" onclick="filterSchedule('2')">Tuesday - Thursday - Saturday | 2PM - 6PM</button>
-        <button class="btn-schedule" onclick="filterSchedule('all')">All currently teaching members</button>
+        <label for="scheduleSelect" style="font-weight: bold; margin-right: 10px;">Chọn ca dạy:</label>
+        <select id="scheduleSelect" class="btn-schedule" style="width: auto; padding: 10px;"
+                onchange="app.loadMembersBySchedule(localStorage.getItem('staffId'), this.value)">
+            <option value="all">Đang tải ca dạy...</option>
+        </select>
     </div>
-
     <div class="card table-card-purple">
-        <div class="table-header-tools">
-            <div class="search-box-container">
-                <input type="text" placeholder="Search" class="table-search">
-                <span class="search-icon">🔍</span>
-            </div>
-        </div>
-
         <table id="memberTable">
             <thead>
             <tr>
@@ -57,20 +48,6 @@
             </tr>
             </thead>
             <tbody>
-            <tr data-schedule="1">
-                <td>Phạm Thành Đạt</td>
-                <td>HV001</td>
-                <td>Feb 01</td>
-                <td>Mar 01</td>
-                <td><button class="btn-detail-pill" onclick="openMemberDetail('HV001', 'Phạm Thành Đạt', '01-01-2000', 'Nam', '0909000001')">Detail</button></td>
-            </tr>
-            <tr data-schedule="2">
-                <td>Nguyễn Mai Anh</td>
-                <td>HV002</td>
-                <td>Feb 02</td>
-                <td>May 02</td>
-                <td><button class="btn-detail-pill" onclick="openMemberDetail('HV002', 'Nguyễn Mai Anh', '15-05-1998', 'Nữ', '0908888888')">Detail</button></td>
-            </tr>
             </tbody>
         </table>
     </div>
@@ -104,43 +81,22 @@
         </div>
     </div>
 </div>
-</body>
+<script src="../js/Trainer.js"></script>
 <script>
-    // Chức năng lọc lịch trình
-    function filterSchedule(type) {
-        const rows = document.querySelectorAll('#memberTable tbody tr');
+    const app = new TrainerApp();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
 
-        rows.forEach(row => {
-            const scheduleType = row.getAttribute('data-schedule');
-            if (type === 'all' || scheduleType === type) {
-                row.style.display = ""; // Hiện
-            } else {
-                row.style.display = "none"; // Ẩn
-            }
-        });
-    }
-
-    // Chức năng Pop-up chi tiết
-    function openMemberDetail(id, name, dob, gender, contact) {
-        document.getElementById('displayMemberId').innerText = id;
-        document.getElementById('detailName').value = name;
-        document.getElementById('detailDob').value = dob;
-        document.getElementById('detailGender').value = gender;
-        document.getElementById('detailContact').value = contact;
-
-        document.getElementById('memberDetailModal').style.display = "block";
-    }
-
-    function closeMemberDetail() {
-        document.getElementById('memberDetailModal').style.display = "none";
-    }
-
-    // Đóng khi click ngoài vùng modal
-    window.onclick = function(event) {
-        let modal = document.getElementById('memberDetailModal');
-        if (event.target == modal) {
-            modal.style.display = "none";
+    window.onload = () => {
+        const staffId = localStorage.getItem('staffId');
+        if (staffId) {
+            app.initSchedulePage(staffId);
+        } else {
+            window.location.href = 'login.html';
         }
-    }
+    };
 </script>
+</body>
 </html>

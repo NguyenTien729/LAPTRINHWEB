@@ -37,6 +37,7 @@ app.post('/login', (req, res) => {
         if (results.length > 0) {
             res.json({
                 success: true,
+                staffId: results[0].MaNV,
                 role: results[0].MaCV,
                 name: results[0].TenNV,
                 email: results[0].Email,
@@ -115,27 +116,42 @@ app.get('/api/staffs', (req, res) => {
         res.json(results);
     });
 });
+
 app.get('/api/staffs/:id', (req, res) => {
     const staffId = req.params.id;
+
     const sql = `
-        SELECT 
-            nv.MaNV as staffId, 
-            nv.TenNV as name, 
-            u.UserName as username, 
-            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob, 
-            nv.GioiTinh as gender, 
-            nv.SDT as contact, 
-            nv.Email as email
+        SELECT
+            nv.MaNV as staffId,
+            nv.TenNV as name,
+            u.UserName as username,
+            u.Password as pass,
+            u.Status as status,
+            nv.NgaySinh as dob,
+            nv.GioiTinh as gender,
+            nv.SDT as contact,
+            nv.Email as email,
+            nv.MaCV as role_id,
+            cv.TenChucVu as role_name,
+            (cv.Luong * nv.HeSoLuong) as salary_num
         FROM NHANVIEN nv
-        LEFT JOIN USER u ON nv.MaNV = u.MaNV
-        WHERE nv.MaNV = ?`;
+                 LEFT JOIN USER u ON nv.MaNV = u.MaNV
+                 LEFT JOIN CHUCVU cv ON nv.MaCV = cv.MaCV
+        WHERE nv.MaNV = ?
+    `;
 
     db.query(sql, [staffId], (err, results) => {
-        if (err) return res.status(500).json({ error: err.message });
-        if (results.length === 0) return res.status(404).json({ message: "Không tìm thấy" });
+        if (err) {
+            console.error("lỗi thông tin:", err);
+            return res.status(500).json({ error: err.message });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: "lỗi không nv" });
+        }
         res.json(results[0]);
     });
 });
+
 
 // API Cập nhật nhân viên
 app.put('/api/staffs/:id', (req, res) => {
@@ -149,7 +165,7 @@ app.put('/api/staffs/:id', (req, res) => {
         //Cập nhật NHANVIEN
         const sqlNV = `
             UPDATE NHANVIEN 
-            SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?, MaCV = ? 
+            SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?
             WHERE MaNV = ?`;
 
         db.query(sqlNV, [name, dob, gender, contact, email, role, staffId], (err, result) => {
@@ -427,6 +443,53 @@ app.delete('/api/packages/:id', (req, res) => {
 });
 
 
+
+//API lấy danh sách ca dạy của 1 huấn luyện viên
+app.get('/api/trainer/schedules/:trainerId', (req, res) => {
+    const trainerId = req.params.trainerId;
+    const sql = `
+        SELECT ld.MaLich, ld.GioBatDau, ld.GioKetThuc, 
+               GROUP_CONCAT(lt.Thu ORDER BY lt.Thu) as ThuTrongTuan
+        FROM LICHDAY ld
+        JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
+        WHERE ld.MaHLV = ?
+        GROUP BY ld.MaLich`;
+
+    db.query(sql, [trainerId], (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
+    });
+});
+
+//API lấy hội viên theo ca
+app.get('/api/trainer/members', (req, res) => {
+    const { trainerId, maLich } = req.query;
+    let sql = `
+        SELECT 
+            hv.MaHV as memberid, 
+            hv.TenHV as name, 
+            DATE_FORMAT(hv.NgaySinh, '%Y-%m-%d') as dob,
+            hv.GioiTinh as gender,
+            hv.SDT as contact,
+            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') as date_enrolled,
+            DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d') as date_expiry,
+            dk.MaLich
+        FROM HOIVIEN hv
+        JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+        JOIN LICHDAY ld ON dk.MaLich = ld.MaLich
+        WHERE ld.MaHLV = ?`;
+
+    const params = [trainerId];
+    if (maLich && maLich !== 'all') {
+        sql += " AND dk.MaLich = ?";
+        params.push(maLich);
+    }
+
+    db.query(sql, params, (err, results) => {
+        if (err) return res.status(500).json(err);
+        res.json(results);
+    });
+});
 
 app.listen(3000, () => {
     console.log('Server đang chạy tại http://localhost:3000');

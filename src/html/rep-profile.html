@@ -85,7 +85,7 @@
     document.getElementById('sidebarEmail').textContent = email;
 
     window.onload = () => {
-        const staffId = localStorage.getItem('staffId') || 'NV001';
+        const staffId = localStorage.getItem('staffId');
         app.loadProfile(staffId);
     }
 </script>
