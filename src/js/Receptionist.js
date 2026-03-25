@@ -145,16 +145,47 @@ class ReceptionistApp {
             memberName:  this._val('paymentMember'),
             packageId:   this._val('packageSelect'),
             date:        this._val('paymentDate'),
-            paymentType: this._val('paymentMethod')
+            paymentType: 'Tiền mặt'
         };
-        if(!data.memberName||!data.date||!data.paymentType||!data.packageId){
-            alert("Vui lòng nhập đầy đủ thông tin");
-            return;
-        }
-
         const result = await this._req('/api/payments', 'POST', data);
         if (result.success) { alert('Lưu thành công!'); this.loadPayments(); }
         else alert('Lỗi: ' + result.message);
+    }
+
+    async iniPayment() {
+        const [packages, schedules] = await Promise.all([
+            this._req('/api/packages'),
+            this._req('/api/schedules-detail')
+        ]);
+
+        // Đổ gói tập
+        const pkgSelect = document.getElementById('packageSelect');
+        this._pkgs = packages; // Lưu tạm để lấy giá
+        packages.forEach(p => pkgSelect.innerHTML += `<option value="${p.packageid}">${p.name}</option>`);
+
+        // Đổ lịch tập
+        const schSelect = document.getElementById('scheduleSelect');
+        this._schs = schedules; // Lưu tạm để lấy giờ/thứ
+        schedules.forEach(s => {
+            schSelect.innerHTML += `<option value="${s.MaLich}">${s.TenNV} - ${s.MaLich}</option>`;
+        });
+    }
+    // 2. Xử lý khi chọn gói tập -> Hiển thị giá
+    onPackageChange(el) {
+        const pkg = this._pkgs.find(p => p.packageid === el.value);
+        document.getElementById('priceInput').value = pkg ? pkg.price : '';
+    }
+
+    // 3. Xử lý khi chọn lịch -> Hiển thị Giờ & Thứ (Readonly)
+    onScheduleChange(el) {
+        const sch = this._schs.find(s => s.MaLich === el.value);
+        if (sch) {
+            document.getElementById('timeDisplay').value = `${sch.GioBatDau} - ${sch.GioKetThuc}`;
+            document.getElementById('daysDisplay').value = `Thứ: ${sch.CácThứ}`;
+        } else {
+            document.getElementById('timeDisplay').value = '';
+            document.getElementById('daysDisplay').value = '';
+        }
     }
 
     onPackageChange(selectEl, priceInputId) {

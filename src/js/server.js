@@ -232,7 +232,7 @@ app.post('/api/members', async (req, res) => {
 
 //API thanh toán -> lưu vào bảng đăng ký tập vs bảng tt
 app.post('/api/payments-full', async (req, res) => {
-    const { memberName, packageId, maLich, date, paymentType, amount } = req.body;
+    const { memberName, packageId, maLich, sdate, edate, paymentType, amount } = req.body;
 
     // check tên hội viên
     db.query("SELECT MaHV FROM HOIVIEN WHERE TenHV = ?", [memberName], async (err, members) => {
@@ -245,11 +245,11 @@ app.post('/api/payments-full', async (req, res) => {
 
             db.beginTransaction((err) => {
                 // Thêm DANGKYTAP
-                const sqlDK = "INSERT INTO DANGKYTAP (MaDK, MaHV, MaGoi, MaLich, NgayBatDau) VALUES (?, ?, ?, ?, ?)";
-                db.query(sqlDK, [maDK, maHV, packageId, maLich, date], (err) => {
+                const sqlDK = "INSERT INTO DANGKYTAP (MaDK, MaHV, MaGoi, MaLich, NgayBatDau, NgayKetThuc) VALUES (?,?,?,?,?,?)";
+                db.query(sqlDK, [maDK, maHV, packageId, maLich, sdate, edate], (err) => {
                     if (err) return db.rollback(() => res.status(500).json({message: "Lỗi DK"}));
                     // Thêm THANHTOAN
-                    const sqlTT = "INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai) VALUES (?, ?, NOW(), ?, ?, 'Đã thanh toán')";
+                    const sqlTT = "INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai) VALUES (?,?,NOW(),?,?,'Đã thanh toán')";
                     db.query(sqlTT, [maTT, maDK, amount, paymentType], (err) => {
                         if (err) return db.rollback(() => res.status(500).json({message: "Lỗi TT"}));
 

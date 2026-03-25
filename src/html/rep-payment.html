@@ -59,17 +59,12 @@
     <div class="card table-section">
         <h3>Payment</h3>
         <div class="table-tools">
-            <label>Show Entities <select><option>4</option></select></label>
             <input type="text" placeholder="Search" class="search-table">
         </div>
         <table>
             <thead>
             <tr>
-                <th>Name</th>
-                <th>Member ID</th>
-                <th>Package</th>
-                <th>Payment date</th>
-                <th>Payment type</th>
+                <th>Name</th><th>Member ID</th><th>Package</th><th>Payment date</th><th>Payment type</th>
             </tr>
             </thead>
             <tbody id="paymentTbody"></tbody>
@@ -83,18 +78,22 @@
         <img src="assets/QR.jpg" alt="QR Code" style="width: 100%; height: auto; margin-top: 10px;">
     </div>
 </div>
-</body>
+
 <script src="../js/Receptionist.js"></script>
 <script>
     const app = new ReceptionistApp();
-
     const name = localStorage.getItem('staffName') || '';
     const email = localStorage.getItem('staffEmail')   || '';
 
     document.getElementById('sidebarName').textContent  = name;
     document.getElementById('sidebarEmail').textContent = email;
 
-    window.onload = () => app.loadPayments('paymentTbody');
+    window.onload = () => {
+        app.loadPayments();
+        app.iniPayment()
+    }
 </script>
-</html>
+
+
+</body>
 </html>

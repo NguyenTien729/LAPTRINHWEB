@@ -199,22 +199,8 @@ class ManagerApp {
         });
     }
 
-    async savePayment() {
-        const data = {
-            memberName:  this._val('paymentMember'),
-            packageId:   this._val('packageSelect'),
-            date:        this._val('paymentDate'),
-            paymentType: 'Tiền mặt'
-        };
-        const result = await this._req('/api/payments', 'POST', data);
-        if (result.success) { alert('Lưu thành công!'); this.loadPayments(); }
-        else alert('Lỗi: ' + result.message);
-    }
 
-    onPackageChange(selectEl, priceInputId) {
-        const el = document.getElementById(priceInputId);
-        if (el) el.value = selectEl.value ? this._fmtMoney(selectEl.value) : '';
-    }
+
 
     showQR() { this._show('qrModal'); }
     hideQR() { this._hide('qrModal'); }
@@ -331,12 +317,41 @@ class ManagerApp {
 
     // 4. Lưu tổng hợp
     async savePayment() {
+        const startDateVal = this._val('paymentDate'); // Lấy chuỗi yyyy-mm-dd
+        const packageId = this._val('packageSelect');
+        // KIỂM TRA 2: Tìm gói tập để lấy số ngày (validity)
+        const selectedPkg = this._pkgs.find(p => p.packageid === packageId);
+        if (!selectedPkg) {
+            alert("Vui lòng chọn Gói tập!");
+            return;
+        }
+
+        // 3. Tính toán Ngày kết thúc (edate)
+        const sDate = new Date(startDateVal);
+
+        // Kiểm tra nếu đối tượng Date không hợp lệ
+        if (isNaN(sDate.getTime())) {
+            alert("Định dạng ngày bắt đầu không hợp lệ!");
+            return;
+        }
+
+        const validityDays = parseInt(selectedPkg.validity);
+        const eDateObj = new Date(sDate);
+        eDateObj.setDate(sDate.getDate() + validityDays);
+
+        // Chuyển về định dạng yyyy-mm-dd
+        const edate = eDateObj.toISOString().split('T')[0];
+
+        console.log("Sdate:", startDateVal); // Kiểm tra log ở Console
+        console.log("Edate:", edate);
+
         const data = {
             memberName:  this._val('paymentMember'),
-            packageId:   this._val('packageSelect'),
+            packageId:   packageId,
             maLich:      this._val('scheduleSelect'),
             amount:      this._val('priceInput'),
-            date:        this._val('paymentDate'),
+            sdate:       startDateVal, // Gửi ngày bắt đầu
+            edate:       edate,        // Gửi ngày kết thúc
             paymentType: this._val('paymentMethod')
         };
 
@@ -344,8 +359,6 @@ class ManagerApp {
         if (res.success) {
             alert(res.message);
             this.loadPayments('paymentTbody');
-        } else {
-            alert("Lỗi: " + res.message);
         }
     }
 
