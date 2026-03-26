@@ -11,8 +11,6 @@ class Admin {
         };
     }
 
-    // ==================== API ====================
-
     async fetchAll() {
         const response = await fetch(`${this.apiBase}/api/staffs`);
         if (!response.ok) throw new Error('Không thể lấy dữ liệu từ server');
@@ -67,13 +65,11 @@ class Admin {
                 </div>`;
     }
 
-    // ==================== MODAL ====================
-
     openAddModal() {
         this.isEditMode = false;
         document.getElementById('modalStaffId').innerText = 'New Staff';
         document.getElementById('editStaffIdDisplay').readOnly = false;
-        this._fillModal('', '', '', '', '', '', '', '', 'CV03', 'Active');
+        this._fillModal('', '', '', '', '', '', '', '', '', 'Active');
         document.getElementById('staffModal').style.display = 'block';
     }
 
@@ -95,8 +91,15 @@ class Admin {
         document.getElementById('editEmail').value = email;
         document.getElementById('editRole').value = roleId;
         document.getElementById('editStatus').value = status;
-        document.getElementById('editDob').value =
-            (dob && dob !== 'null') ? new Date(dob).toISOString().split('T')[0] : '';
+        if (dob && dob !== 'null') {
+            const d = new Date(dob);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            document.getElementById('editDob').value = `${y}-${m}-${day}`;
+        } else {
+            document.getElementById('editDob').value = '';
+        }
     }
 
     closeModal() {

@@ -5,7 +5,6 @@ class ManagerApp {
         this.apiBase = API_BASE;
         this.isEditMode = false;
         this._currentPackageId = null;
-
         window.onclick = (e) => {
             ['memberModal','trainerModal','editModal','qrModal'].forEach(id => {
                 const el = document.getElementById(id);
@@ -36,12 +35,16 @@ class ManagerApp {
     async loadProfile(staffId) {
         try{
             const data = await this._req(`/api/staffs/${staffId}`);
+            let formattedDob = "";
+            if (data.dob) {
+                formattedDob = data.dob.split('T')[0];
+            }
             this._txt('displayMasv', data.staffId);
             this._txt('displayUsername', data.username);
             this._txt('displayName', data.name);
             this._txt('displayContact', data.contact);
             this._txt('displayEmail', data.email);
-            this._txt('displayDob', data.dob);
+            this._txt('displayDob', formattedDob);
             this._txt('displayGender', data.gender);
 
             this._set('profileUsername', data.username);
@@ -55,7 +58,8 @@ class ManagerApp {
 
     }
 
-    async saveProfile(staffId) {
+    async saveProfile() {
+        const staffId = localStorage.getItem('staffId');
         const data = {
             username: this._val('profileUsername'),
             name: this._val('profileName'),
@@ -64,9 +68,15 @@ class ManagerApp {
             dob: this._val('profileDob'),
             pass: this._val('profilePassword')
         };
-        const result = await this._req(`/api/staffs/${staffId}`, 'PUT', data);
-        if (result.success) alert('Cập nhật thành công');
-        else alert('Lỗi: ' + result.message);
+        try{
+            const result = await this._req(`/api/staffs/${staffId}/profile`, 'PUT', data);
+            if (result.success) {
+                alert('thành công');
+                this.loadProfile(staffId);
+            } else alert('Lỗi: ' + result.message);
+        } catch (err){
+            alert("kết nối");
+        }
     }
 
     // ── Members ─────────────────────────────────────────────
@@ -198,7 +208,7 @@ class ManagerApp {
 
 
 
-    // ── Payment ─────────────────────────────────────────────
+    //payment
 
     async loadPayments(tbodyId = 'paymentTbody') {
         const payments = await this._req('/api/payments');
@@ -223,7 +233,7 @@ class ManagerApp {
     showQR() { this._show('qrModal'); }
     hideQR() { this._hide('qrModal'); }
 
-    // ── Package ─────────────────────────────────────────────
+    //Package
 
     async loadPackages(tbodyId = 'packageTbody') {
         const packages = await this._req('/api/packages');
@@ -303,25 +313,22 @@ class ManagerApp {
             this._req('/api/schedules-detail')
         ]);
 
-        // Đổ gói tập
+        //Đổi gói tập
         const pkgSelect = document.getElementById('packageSelect');
         this._pkgs = packages; // Lưu tạm để lấy giá
         packages.forEach(p => pkgSelect.innerHTML += `<option value="${p.packageid}">${p.name}</option>`);
 
-        // Đổ lịch tập
+        //Đổi lịch tập
         const schSelect = document.getElementById('scheduleSelect');
         this._schs = schedules; // Lưu tạm để lấy giờ/thứ
         schedules.forEach(s => {
             schSelect.innerHTML += `<option value="${s.MaLich}">${s.TenNV} - ${s.MaLich}</option>`;
         });
     }
-    // 2. Xử lý khi chọn gói tập -> Hiển thị giá
     onPackageChange(el) {
         const pkg = this._pkgs.find(p => p.packageid === el.value);
         document.getElementById('priceInput').value = pkg ? pkg.price : '';
     }
-
-    // 3. Xử lý khi chọn lịch -> Hiển thị Giờ & Thứ (Readonly)
     onScheduleChange(el) {
         const sch = this._schs.find(s => s.MaLich === el.value);
         if (sch) {
@@ -333,18 +340,14 @@ class ManagerApp {
         }
     }
 
-    // 4. Lưu tổng hợp
     async savePayment() {
         const startDateVal = this._val('paymentDate'); // Lấy chuỗi yyyy-mm-dd
         const packageId = this._val('packageSelect');
-        // KIỂM TRA 2: Tìm gói tập để lấy số ngày (validity)
         const selectedPkg = this._pkgs.find(p => p.packageid === packageId);
         if (!selectedPkg) {
             alert("Vui lòng chọn Gói tập!");
             return;
         }
-
-        // 3. Tính toán Ngày kết thúc (edate)
         const sDate = new Date(startDateVal);
 
         // Kiểm tra nếu đối tượng Date không hợp lệ
@@ -380,12 +383,10 @@ class ManagerApp {
         }
     }
 
-    // ── Report ───────────────────────────────────────────────
+    //Report
     async loadReport() {
         const fromDate = document.getElementById('reportFrom').value;
         const toDate = document.getElementById('reportTo').value;
-
-        // Validate
         if (!fromDate || !toDate) {
             alert("chọn t.g");
             return;
@@ -401,7 +402,7 @@ class ManagerApp {
         }
     }
 
-    // ==================== API: TÍNH TỔNG DOANH THU ====================
+    //tổng doanh thu
     async loadRevenueTotal(fromDate, toDate) {
         try {
             const url = `${this.apiBase}/api/revenue/total?from=${fromDate}&to=${toDate}`;
@@ -431,7 +432,7 @@ class ManagerApp {
         }
     }
 
-    // ==================== TIỆN ÍCH: SET NGÀY MẶC ĐỊNH ====================
+    //auto set ngày
     setDefaultDates() {
         const today = new Date();
         const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);

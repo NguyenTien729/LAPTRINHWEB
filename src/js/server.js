@@ -50,29 +50,31 @@ app.post('/login', (req, res) => {
 });
 
 //API thêm nhân viên
-app.post('/api/staffs', (req, res) => {
-    const { staffId, name, dob, gender, contact, email, role_id, pass } = req.body;
+app.post('/api/staffs', async (req, res) => {
+    const { staffId, name, dob, gender, contact, email, role, username, password } = req.body;
 
-    db.beginTransaction(err => {
-        if (err) return res.status(500).json({ success: false, message: err });
+    try {
+        const userId = await generateNextId('USER', 'UserID', 'U');
 
-        // Thêm vào bảng NHANVIEN
-        const sqlNV = "INSERT INTO NHANVIEN (MaNV, TenNV, NgaySinh, GioiTinh, SDT, Email, MaCV, HeSoLuong) VALUES (?, ?, ?, ?, ?, ?, ?, 1.0)";
-        db.query(sqlNV, [staffId, name, dob, gender, contact, email, role_id], (err) => {
-            if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Mã NV đã tồn tại hoặc lỗi dữ liệu" }));
+        db.beginTransaction(err => {
+            if (err) return res.status(500).json({ success: false, message: err.message });
+            const sqlNV = "INSERT INTO NHANVIEN (MaNV, TenNV, NgaySinh, GioiTinh, SDT, Email, MaCV, HeSoLuong) VALUES (?, ?, ?, ?, ?, ?, ?, 1.0)";
+            db.query(sqlNV, [staffId, name, dob, gender, contact, email, role], (err) => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi NHANVIEN: " + err.message }));
+                const sqlU = "INSERT INTO USER (UserID, MaNV, UserName, Password, Status) VALUES (?, ?, ?, ?, 'Active')";
+                db.query(sqlU, [userId, staffId, username, password], (err) => {
+                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi USER: " + err.message }));
 
-            // Tạo tài khoản USER mặc định (User = Mã NV, Pass = 123, Status = Active)
-            const sqlU = "INSERT INTO USER (MaNV, UserName, Password, Status) VALUES (?, ?, ?, 'Active')";
-            db.query(sqlU, [staffId, staffId, '123'], (err) => {
-                if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi tạo tài khoản" }));
-
-                db.commit(err => {
-                    if (err) return db.rollback(() => res.status(500).json({ success: false }));
-                    res.json({ success: true, message: "Thêm nhân viên thành công!" });
+                    db.commit(err => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                        res.json({ success: true, message: "Thêm nhân viên thành success!" });
+                    });
                 });
             });
         });
-    });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "Lỗi tạo ID: " + error.message });
+    }
 });
 
 //API xóa nhân viên
@@ -127,7 +129,7 @@ app.get('/api/staffs/:id', (req, res) => {
             u.UserName as username,
             u.Password as pass,
             u.Status as status,
-            nv.NgaySinh as dob,
+            DATE_FORMAT(nv.NgaySinh, '%Y-%m-%d') as dob,
             nv.GioiTinh as gender,
             nv.SDT as contact,
             nv.Email as email,
@@ -161,11 +163,10 @@ app.put('/api/staffs/:id', (req, res) => {
 
     db.beginTransaction((err) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
-
         //Cập nhật NHANVIEN
         const sqlNV = `
             UPDATE NHANVIEN 
-            SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?
+            SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?, MaCV=?
             WHERE MaNV = ?`;
 
         db.query(sqlNV, [name, dob, gender, contact, email, role, staffId], (err, result) => {
@@ -194,6 +195,62 @@ app.put('/api/staffs/:id', (req, res) => {
                             res.status(500).json({ success: false, message: "Lỗi Commit" });
                         });
                     }
+                    res.json({ success: true, message: "Cập nhật thành công" });
+                });
+            });
+        });
+    });
+});
+//cập nhật profile
+app.put('/api/staffs/:id/profile', (req, res) => {
+    const staffId = req.params.id;
+    const { username, name, contact, email, dob, pass } = req.body;
+
+    db.beginTransaction((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: err.message });
+        }
+        // 1. Cập nhật NHANVIEN
+        const sqlNV = `
+            UPDATE NHANVIEN 
+            SET TenNV = ?, NgaySinh = ?, SDT = ?, Email = ? 
+            WHERE MaNV = ?`;
+
+        db.query(sqlNV, [name, dob, contact, email, staffId], (err, result) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.error("Lỗi NHANVIEN:", err);
+                    res.status(500).json({ success: false, message: "Lỗi " });
+                });
+            }
+
+            // 2. Cập nhật USER
+            let sqlU = `UPDATE USER SET UserName = ?`;
+            let params = [username];
+
+            if (pass && pass.trim() !== '') {
+                sqlU += `, Password = ?`;
+                params.push(pass);
+            }
+
+            sqlU += ` WHERE MaNV = ?`;
+            params.push(staffId);
+
+            db.query(sqlU, params, (err, result) => {
+                if (err) {
+                    return db.rollback(() => {
+                        console.error("Lỗi USER:", err);
+                        res.status(500).json({ success: false, message: "Lỗi " });
+                    });
+                }
+
+                db.commit((err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            res.status(500).json({ success: false, message: "Lỗi Commit" });
+                        });
+                    }
+                    console.log("✅ Profile update successful");
                     res.json({ success: true, message: "Cập nhật thành công" });
                 });
             });
