@@ -13,7 +13,7 @@ class ReceptionistApp {
         };
     }
 
-    // ── Tiện ích ────────────────────────────────────────────
+    //hàm
 
     async _req(endpoint, method = 'GET', body = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
@@ -105,7 +105,36 @@ class ReceptionistApp {
         if (result.success) { this.closeMemberModal(); this.loadMembers(); }
     }
 
-    // ── Trainer ─────────────────────────────────────────────
+    async searchMembers(keyword) {
+        if (!keyword || !keyword.trim()) {
+            return this.loadMembers('memberTbody');
+        }
+        try {
+            const res = await fetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+            const tbody = document.getElementById('memberTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                data.forEach(m => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.memberid}</td>
+                    <td>${m.date_enrolled ?? ''}</td>
+                    <td>${m.date_expiry ?? ''}</td>
+                    <td><button class="btn-detail-pill"
+                        onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                        Detail</button></td>
+                </tr>`;
+                });
+            }
+        } catch (error) {
+            console.error("lỗi:", error);
+            alert("Lỗi");
+        }
+    }
+
+    //Trainer
 
     async loadTrainers(tbodyId = 'trainerTbody') {
         const trainers = await this._req('/api/trainers');
@@ -138,7 +167,7 @@ class ReceptionistApp {
 
     closeTrainerModal() { this._hide('trainerModal'); }
 
-    // ── Payment ─────────────────────────────────────────────
+    //Payment
 
     async loadPayments(tbodyId = 'paymentTbody') {
         const payments = await this._req('/api/payments');
@@ -175,25 +204,21 @@ class ReceptionistApp {
             this._req('/api/schedules-detail')
         ]);
 
-        // Đổ gói tập
         const pkgSelect = document.getElementById('packageSelect');
         this._pkgs = packages; // Lưu tạm để lấy giá
         packages.forEach(p => pkgSelect.innerHTML += `<option value="${p.packageid}">${p.name}</option>`);
 
-        // Đổ lịch tập
         const schSelect = document.getElementById('scheduleSelect');
-        this._schs = schedules; // Lưu tạm để lấy giờ/thứ
+        this._schs = schedules;
         schedules.forEach(s => {
             schSelect.innerHTML += `<option value="${s.MaLich}">${s.TenNV} - ${s.MaLich}</option>`;
         });
     }
-    // 2. Xử lý khi chọn gói tập -> Hiển thị giá
     onPackageChange(el) {
         const pkg = this._pkgs.find(p => p.packageid === el.value);
         document.getElementById('priceInput').value = pkg ? pkg.price : '';
     }
 
-    // 3. Xử lý khi chọn lịch -> Hiển thị Giờ & Thứ (Readonly)
     onScheduleChange(el) {
         const sch = this._schs.find(s => s.MaLich === el.value);
         if (sch) {
@@ -213,7 +238,7 @@ class ReceptionistApp {
     showQR() { this._show('qrModal'); }
     hideQR() { this._hide('qrModal'); }
 
-    // ── Package (chỉ xem, không sửa) ────────────────────────
+    //Package
 
     async loadPackages(tbodyId = 'packageTbody') {
         const packages = await this._req('/api/packages');
@@ -230,7 +255,34 @@ class ReceptionistApp {
         });
     }
 
-    // ── Registration ─────────────────────────────────────────
+    async searchPayment(keyword) {
+        if (!keyword || !keyword.trim()) {
+            return this.loadPayments('paymentTbody');
+        }
+        try {
+            const res = await fetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+            const tbody = document.getElementById('paymentTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                data.forEach(p => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.memberid}</td>
+                    <td>${p.package}</td>
+                    <td>${p.date_paid}</td>
+                    <td>${p.payment_type}</td>
+                </tr>`;
+                });
+            }
+        } catch (error) {
+            console.error("lỗi", error);
+            alert("Lỗi");
+        }
+    }
+
+    //Registration
 
     async registerMember() {
         const data = {

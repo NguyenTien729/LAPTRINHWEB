@@ -119,7 +119,7 @@ class TrainerApp {
 
     closeMemberModal() { this._hide('memberDetailModal'); }
 
-    // ── Trainer (xem đồng nghiệp) ───────────────────────────
+    //Trainer
 
     async loadTrainers(tbodyId = 'trainerTbody') {
         const trainers = await this._req('/api/trainers');

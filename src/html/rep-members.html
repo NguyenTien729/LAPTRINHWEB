@@ -36,8 +36,10 @@
     <div class="card table-card">
         <div class="card-header-purple">
             <h3>Gym Members</h3>
-            <div class="search-box-container">
-                <input type="text" placeholder="Search" class="table-search">
+            <div class="search-bar">
+                <input type="text" id="memberSearchInput" placeholder="Search by name, ID or date..."
+                       onkeypress="if(event.key === 'Enter') app.searchMembers(this.value)">
+                <button class="btn-white" onclick="app.searchMembers(document.getElementById('memberSearchInput').value)">Search</button>
             </div>
         </div>
 

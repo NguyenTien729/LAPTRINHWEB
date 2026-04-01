@@ -142,7 +142,36 @@ class ManagerApp {
         }
     }
 
-    // ── Trainer ─────────────────────────────────────────────
+    async searchMembers(keyword) {
+        if (!keyword || !keyword.trim()) {
+            return this.loadMembers('memberTbody');
+        }
+        try {
+            const res = await fetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+            const tbody = document.getElementById('memberTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                data.forEach(m => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${m.name}</td>
+                    <td>${m.memberid}</td>
+                    <td>${m.date_enrolled ?? ''}</td>
+                    <td>${m.date_expiry ?? ''}</td>
+                    <td><button class="btn-detail-pill"
+                        onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                        Detail</button></td>
+                </tr>`;
+                });
+            }
+        } catch (error) {
+            console.error("Lỗi tìm kiếm:", error);
+            alert("Không thể tìm kiếm thành viên");
+        }
+    }
+
+    //Trainer
 
     async loadTrainers(tbodyId = 'trainerTbody') {
         const trainers = await this._req('/api/trainers');
@@ -177,22 +206,21 @@ class ManagerApp {
 
 
     async loadDashboard() {
-        const [members, trainers] = await Promise.all([
-            this._req('/api/members'),
+        const [expiringMembers, trainers] = await Promise.all([
+            this._req('/api/dashboard/expiring-members'),
             this._req('/api/trainers')
         ]);
 
         const tbody = document.getElementById('dashMemberTbody');
         if (tbody) {
             tbody.innerHTML = '';
-            members.forEach(m => {
+            expiringMembers.forEach(m => {
                 tbody.innerHTML += `
                 <tr>
-                    <td><div class="sm-avatar"></div></td>
                     <td>${m.name}</td>
                     <td>${m.date_enrolled ?? ''}</td>
                     <td>${m.date_expiry ?? ''}</td>
-                    <td><span class="status-active">Active</span></td>
+                    <td><span class="status-active">Warning</span></td>
                 </tr>`;
             });
         }
@@ -228,10 +256,36 @@ class ManagerApp {
     }
 
 
-
-
     showQR() { this._show('qrModal'); }
     hideQR() { this._hide('qrModal'); }
+
+
+    async searchPayment(keyword) {
+        if (!keyword || !keyword.trim()) {
+            return this.loadPayments('paymentTbody');
+        }
+        try {
+            const res = await fetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
+            const data = await res.json();
+            const tbody = document.getElementById('paymentTbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                data.forEach(p => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${p.name}</td>
+                    <td>${p.memberid}</td>
+                    <td>${p.package}</td>
+                    <td>${p.date_paid}</td>
+                    <td>${p.payment_type}</td>
+                </tr>`;
+                });
+            }
+        } catch (error) {
+            console.error("lỗi", error);
+            alert("Lỗi");
+        }
+    }
 
     //Package
 

@@ -65,8 +65,10 @@
 
     <div class="card table-section">
         <h3>Payment</h3>
-        <div class="table-tools">
-            <input type="text" placeholder="Search" class="search-table">
+        <div class="search-bar">
+            <input type="text" id="paymentSearchInput" placeholder="Search by name, ID or date..."
+                   onkeypress="if(event.key === 'Enter') app.searchPayment(this.value)">
+            <button class="btn-white" onclick="app.searchPayment(document.getElementById('paymentSearchInput').value)">Search</button>
         </div>
         <table>
             <thead>

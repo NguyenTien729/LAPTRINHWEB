@@ -23,7 +23,7 @@ db.connect(err => {
     console.log('Đã kết nối MySQL.');
 });
 
-//API Đăng nhập
+//API đăng nhập
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     const query = `
@@ -258,6 +258,26 @@ app.put('/api/staffs/:id/profile', (req, res) => {
     });
 });
 
+//API lấy thông tin hội viên sắp hết hạn
+app.get('/api/dashboard/expiring-members', (req, res) => {
+    const sql = `
+        SELECT
+            hv.MaHV as memberid,
+            hv.TenHV as name,
+            DATE_FORMAT(dk.NgayBatDau,'%Y-%m-%d') as date_enrolled,
+            DATE_FORMAT(dk.NgayKetThuc,'%Y-%m-%d') as date_expiry
+        FROM HOIVIEN hv
+        INNER JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+        WHERE dk.NgayKetThuc >= CURDATE()
+        ORDER BY dk.NgayKetThuc ASC
+        LIMIT 5
+    `;
+    db.query(sql, (err, result) => {
+        if (err) return res.status(500).json(err);
+        res.json(result);
+    });
+});
+
 //API lấy thông tin member
 app.get('/api/members', (req, res) => {
     const sql = `
@@ -323,6 +343,75 @@ app.post('/api/members', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+//API tìm kiếm member
+app.get('/api/members/search', (req, res) => {
+    const { keyword } = req.query;
+    const searchVal = `%${keyword}%`;
+
+    const sql = `
+        SELECT 
+            hv.MaHV as memberid, 
+            hv.TenHV as name, 
+            DATE_FORMAT(hv.NgaySinh, '%Y-%m-%d') as dob,
+            hv.GioiTinh as gender,
+            hv.SDT as contact,
+            MAX(DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d')) as date_enrolled,
+            MAX(DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d')) as date_expiry
+        FROM HOIVIEN hv
+        LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+        WHERE 
+            hv.MaHV LIKE ? OR 
+            hv.TenHV LIKE ? OR 
+            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') LIKE ?
+        GROUP BY hv.MaHV, hv.TenHV, hv.NgaySinh, hv.GioiTinh, hv.SDT`;
+
+    db.query(sql, [searchVal, searchVal, searchVal], (err, results) => {
+        if (err) {
+            console.error('sql:', err);
+            return res.status(500).json({ success: false, message: "Lỗi" });
+        }
+        res.json(results);
+    });
+});
+
+
+//API tìm kiếm PAYMENT
+app.get('/api/payments/search', (req, res) => {
+    const { keyword } = req.query;
+    const searchVal = `%${keyword}%`;
+
+    const sql = `
+        SELECT
+            hv.TenHV as name,
+            hv.MaHV as memberid,
+            gt.TenGoi as package,
+            DATE_FORMAT(tt.NgayTT,'%Y-%m-%d') as date_paid,
+            tt.SoTien as amount,
+            tt.HinhThucTT as payment_type,
+            tt.TrangThai as status
+        FROM THANHTOAN tt
+                 JOIN DANGKYTAP dk ON tt.MaDK = dk.MaDK
+                 JOIN HOIVIEN hv ON dk.MaHV = hv.MaHV
+                 JOIN GOITAP gt ON dk.MaGoi = gt.MaGoi
+        WHERE 
+            hv.MaHV LIKE ? OR 
+            hv.TenHV LIKE ? OR 
+            gt.TenGOi LIKE ? OR 
+            DATE_FORMAT(tt.NgayTT, '%Y-%m-%d') LIKE ? OR
+            tt.HinhThucTT LIKE ?
+        ORDER BY tt.NgayTT DESC `;
+
+    db.query(sql, [searchVal, searchVal, searchVal, searchVal, searchVal], (err, results) => {
+        if (err) {
+            console.error('sql:', err);
+            return res.status(500).json({ success: false, message: "Lỗi" });
+        }
+        res.json(results);
+    });
+});
+
+
 
 //API thanh toán -> lưu vào bảng đăng ký tập vs bảng tt
 app.post('/api/payments-full', async (req, res) => {

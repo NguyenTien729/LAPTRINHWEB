@@ -108,7 +108,7 @@ body {
 /*Buttons & inputs*/
 .btn-primary { background: #1e1b4b; color: white; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; }
 .btn-cancel { background: white; border: 1.5px solid #1e1b4b; color: #1e1b4b; padding: 10px 25px; border-radius: 20px; }
-.btn-purple { background: #312e81; color: white; border: none; padding: 8px 15px; border-radius: 8px; }
+.btn-white { background: #312e81; color: white; border: none; padding: 8px 15px; border-radius: 8px; }
 
 input, select {
     width: 100%; padding: 12px; border: 1px solid #e2e8f0;
@@ -271,6 +271,11 @@ body {
     margin-bottom: 15px;
 }
 
+.search-bar {
+    display: flex;
+    gap: 5px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -281,7 +286,7 @@ td { padding: 12px; border-bottom: 1px solid #f9fafb; }
 
 .sm-avatar { width: 30px; height: 30px; background: #eee; border-radius: 50%; }
 .status-active {
-    background: #d1fae5;
+    background: #f1dc33;
     color: #065f46;
     padding: 4px 12px;
     border-radius: 20px;
