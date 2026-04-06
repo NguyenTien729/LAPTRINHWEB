@@ -1,5 +1,30 @@
 const API_BASE = 'http://localhost:3000';
 
+function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
+        window.location.href = 'login.html';
+        return Promise.reject("No token");
+    }
+
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...(options.headers || {})
+        }
+    }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+        return res;
+    });
+}
+
 class Admin {
     constructor() {
         this.apiBase = API_BASE;
@@ -12,7 +37,7 @@ class Admin {
     }
 
     async fetchAll() {
-        const response = await fetch(`${this.apiBase}/api/staffs`);
+        const response = await authFetch(`${this.apiBase}/api/staffs`);
         if (!response.ok) throw new Error('Không thể lấy dữ liệu từ server');
         return await response.json();
     }
@@ -20,16 +45,15 @@ class Admin {
     async save(data) {
         const url = this.isEditMode ? `${this.apiBase}/api/staffs/${data.staffId}` : `${this.apiBase}/api/staffs`;
         const method = this.isEditMode ? 'PUT' : 'POST';
-        const response = await fetch(url, {
+        const response = await authFetch(url, {
             method,
-            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
         return await response.json();
     }
 
     async delete(id) {
-        const response = await fetch(`${this.apiBase}/api/staffs/${id}`, { method: 'DELETE' });
+        const response = await authFetch(`${this.apiBase}/api/staffs/${id}`, { method: 'DELETE' });
         return await response.json();
     }
 

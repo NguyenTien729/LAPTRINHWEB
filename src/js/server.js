@@ -2,10 +2,30 @@ const express = require('express');
 const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const {decode} = require("jsonwebtoken");
+const JWT_SECRET = "max1236987";
+
+function verifyToken(req,res,next){
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if(!token){
+        return res.status(401).json({success: false,message: "Khong co token"});
+    }
+    jwt.verify(token,JWT_SECRET,(err,decode) => {
+        if(err) {
+            return res.status(403).json({success: false, message: "Token het han"});
+        }
+        req.user = decode;
+        next();
+    });
+}
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/api',verifyToken);
 
 //MySQL
 const db = mysql.createConnection({
@@ -26,26 +46,60 @@ db.connect(err => {
 //API đăng nhập
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
-    const query = `
-        SELECT USER.*, NHANVIEN.MaCV,NHANVIEN.TenNV,NHANVIEN.Email 
-        FROM USER 
-        JOIN NHANVIEN ON USER.MaNV = NHANVIEN.MaNV 
-        WHERE USER.username = ? AND USER.password = ?`;
 
-    db.query(query, [username, password], (err, results) => {
+    const query = `
+        SELECT USER.*, NHANVIEN.MaCV, NHANVIEN.TenNV, NHANVIEN.Email
+        FROM USER
+                 JOIN NHANVIEN ON USER.MaNV = NHANVIEN.MaNV
+        WHERE USER.username = ?`;
+
+    db.query(query, [username], async (err, results) => {
         if (err) return res.status(500).send(err);
-        if (results.length > 0) {
-            res.json({
-                success: true,
-                staffId: results[0].MaNV,
-                role: results[0].MaCV,
-                name: results[0].TenNV,
-                email: results[0].Email,
-                message: "Đăng nhập thành công"
-            });
-        } else {
-            res.json({ success: false, message: "Sai tài khoản hoặc mật khẩu"});
+
+        if (results.length === 0) {
+            return res.json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
         }
+
+        const user = results[0];
+
+
+        if (user.Password.startsWith('$2b$')) {
+            isMatch = await bcrypt.compare(password, user.Password);
+        }
+        // 👉 Nếu password còn plain text
+        else {
+            if (password === user.Password) {
+                isMatch = true;
+
+                const hashed = await bcrypt.hash(password, 10);
+                db.query("UPDATE USER SET Password = ? WHERE UserID = ?", [hashed, user.UserID]);
+            }
+        }
+        if (!isMatch) {
+            return res.json({ success: false, message: "Sai tài khoản hoặc mật khẩu" });
+        }
+
+        if (user.Status === 'Suspended') {
+            return res.json({ success: false, message: "Tài khoản đã bị khóa, vui lòng liên hệ quản trị viên" });
+        }
+
+        const token = jwt.sign(
+            {
+                id: user.MaNV,
+                role: user.MaCV
+            },
+            JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        res.json({
+            success: true,
+            token,
+            staffId: user.MaNV,
+            role: user.MaCV,
+            name: user.TenNV,
+            email: user.Email
+        });
     });
 });
 
@@ -156,50 +210,57 @@ app.get('/api/staffs/:id', (req, res) => {
 
 
 // API Cập nhật nhân viên
-app.put('/api/staffs/:id', (req, res) => {
+app.put('/api/staffs/:id', async (req, res) => {
     const staffId = req.params.id;
     const { name, username, password, dob, gender, contact, email, role, status } = req.body;
 
 
-    db.beginTransaction((err) => {
-        if (err) return res.status(500).json({ success: false, message: err.message });
-        //Cập nhật NHANVIEN
-        const sqlNV = `
+    try{
+        const hashPassword = await bcrypt.hash(password,10);
+
+        db.beginTransaction((err) => {
+            if (err) return res.status(500).json({success: false, message: err.message});
+            //Cập nhật NHANVIEN
+            const sqlNV = `
             UPDATE NHANVIEN 
             SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?, MaCV=?
             WHERE MaNV = ?`;
 
-        db.query(sqlNV, [name, dob, gender, contact, email, role, staffId], (err, result) => {
-            if (err) {
-                return db.rollback(() => {
-                    res.status(500).json({ success: false, message: "Lỗi cập nhật nhân viên" });
-                });
-            }
+            db.query(sqlNV, [name, dob, gender, contact, email, role, staffId], (err, result) => {
+                if (err) {
+                    return db.rollback(() => {
+                        res.status(500).json({success: false, message: "Lỗi cập nhật nhân viên"});
+                    });
+                }
 
-            // Cập nhật USER
-            const sqlU = `
+                // Cập nhật USER
+                const sqlU = `
                 UPDATE USER 
                 SET UserName = ?, Password = ?, Status = ? 
                 WHERE MaNV = ?`;
 
-            db.query(sqlU, [username, password, status, staffId], (err, result) => {
-                if (err) {
-                    return db.rollback(() => {
-                        res.status(500).json({ success: false, message: "Lỗi cập nhật tài khoản" });
-                    });
-                }
 
-                db.commit((err) => {
+                db.query(sqlU, [username, password, status, staffId], (err, result) => {
                     if (err) {
                         return db.rollback(() => {
-                            res.status(500).json({ success: false, message: "Lỗi Commit" });
+                            res.status(500).json({success: false, message: "Lỗi cập nhật tài khoản"});
                         });
                     }
-                    res.json({ success: true, message: "Cập nhật thành công" });
+
+                    db.commit((err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                res.status(500).json({success: false, message: "Lỗi Commit"});
+                            });
+                        }
+                        res.json({success: true, message: "Cập nhật thành công"});
+                    });
                 });
             });
         });
-    });
+    }catch (error){
+        res.status(500).json({succes: false, message: "loi hashmk"});
+    }
 });
 //cập nhật profile
 app.put('/api/staffs/:id/profile', (req, res) => {
@@ -363,7 +424,7 @@ app.get('/api/members/search', (req, res) => {
         WHERE 
             hv.MaHV LIKE ? OR 
             hv.TenHV LIKE ? OR 
-            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') LIKE ?
+            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') LIKE ?  
         GROUP BY hv.MaHV, hv.TenHV, hv.NgaySinh, hv.GioiTinh, hv.SDT`;
 
     db.query(sql, [searchVal, searchVal, searchVal], (err, results) => {
@@ -376,7 +437,7 @@ app.get('/api/members/search', (req, res) => {
 });
 
 
-//API tìm kiếm PAYMENT
+//API tìm kiếm payment
 app.get('/api/payments/search', (req, res) => {
     const { keyword } = req.query;
     const searchVal = `%${keyword}%`;

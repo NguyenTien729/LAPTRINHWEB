@@ -48,6 +48,7 @@
 
             if (data.success) {
                 // Lưu quyền hạn vào localStorage để dùng cho các trang sau
+                localStorage.setItem('token', data.token);
                 localStorage.setItem('staffId', data.staffId)
                 localStorage.setItem('userRole', data.role);
                 localStorage.setItem('staffEmail', data.email);

@@ -1,5 +1,30 @@
 const API_BASE = 'http://localhost:3000';
 
+function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
+        window.location.href = 'login.html';
+        return Promise.reject("No token");
+    }
+
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...(options.headers || {})
+        }
+    }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+        return res;
+    });
+}
+
 
 class ReceptionistApp {
     constructor() {
@@ -18,7 +43,7 @@ class ReceptionistApp {
     async _req(endpoint, method = 'GET', body = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) opts.body = JSON.stringify(body);
-        const res = await fetch(`${this.apiBase}${endpoint}`, opts);
+        const res = await authFetch(`${this.apiBase}${endpoint}`, opts);
         if (!res.ok) throw new Error(`Lỗi ${res.status}`);
         return res.json();
     }
@@ -110,7 +135,7 @@ class ReceptionistApp {
             return this.loadMembers('memberTbody');
         }
         try {
-            const res = await fetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
+            const res = await authFetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
             const data = await res.json();
             const tbody = document.getElementById('memberTbody');
             if (tbody) {
@@ -260,7 +285,7 @@ class ReceptionistApp {
             return this.loadPayments('paymentTbody');
         }
         try {
-            const res = await fetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
+            const res = await authFetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
             const data = await res.json();
             const tbody = document.getElementById('paymentTbody');
             if (tbody) {

@@ -1,5 +1,30 @@
 const API_BASE = 'http://localhost:3000';
 
+function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert("Phiên đăng nhập hết hạn, vui lòng đăng nhập lại!");
+        window.location.href = 'login.html';
+        return Promise.reject("No token");
+    }
+
+    return fetch(url, {
+        ...options,
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...(options.headers || {})
+        }
+    }).then(res => {
+        if (res.status === 401 || res.status === 403) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+        return res;
+    });
+}
+
 class ManagerApp {
     constructor() {
         this.apiBase = API_BASE;
@@ -18,7 +43,7 @@ class ManagerApp {
     async _req(endpoint, method = 'GET', body = null) {
         const opts = { method, headers: { 'Content-Type': 'application/json' } };
         if (body) opts.body = JSON.stringify(body);
-        const res = await fetch(`${this.apiBase}${endpoint}`, opts);
+        const res = await authFetch(`${this.apiBase}${endpoint}`, opts);
         if (!res.ok) throw new Error(`Lỗi ${res.status}`);
         return res.json();
     }
@@ -147,7 +172,7 @@ class ManagerApp {
             return this.loadMembers('memberTbody');
         }
         try {
-            const res = await fetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
+            const res = await authFetch(`${this.apiBase}/api/members/search?keyword=${encodeURIComponent(keyword)}`);
             const data = await res.json();
             const tbody = document.getElementById('memberTbody');
             if (tbody) {
@@ -265,7 +290,7 @@ class ManagerApp {
             return this.loadPayments('paymentTbody');
         }
         try {
-            const res = await fetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
+            const res = await authFetch(`${this.apiBase}/api/payments/search?keyword=${encodeURIComponent(keyword)}`);
             const data = await res.json();
             const tbody = document.getElementById('paymentTbody');
             if (tbody) {
@@ -462,7 +487,7 @@ class ManagerApp {
             const url = `${this.apiBase}/api/revenue/total?from=${fromDate}&to=${toDate}`;
             console.log("🔗 Calling API:", url);
 
-            const response = await fetch(url);
+            const response = await authFetch(url);
 
             if (!response.ok) {
                 throw new Error(`Status: ${response.status}`);
