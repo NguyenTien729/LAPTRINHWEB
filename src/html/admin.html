@@ -10,9 +10,9 @@
 <body>
 <aside class="sidebar">
     <div class="user-profile">
-        <div class="user-avatar"><img src="" alt="Avatar"></div>
-        <p class="user-name">Nguyễn Phú Quý</p>
-        <p class="user-email">admin@gym.com</p>
+        <div class="user-avatar"><img src="assets/profileWhite.jpg" alt="Avatar"></div>
+        <p class="user-name" id="sidebarName">...</p>
+        <p class="user-email" id="sidebarEmail">...</p>
     </div>
     <nav class="nav-menu">
         <a href="admin.html" class="nav-item active">Staff</a>
@@ -84,6 +84,11 @@
 <script src="../js/Admin.js"></script>
 <script>
     const admin = new Admin();
+    const name = localStorage.getItem('staffName') || '';
+    const email = localStorage.getItem('staffEmail')   || '';
+
+    document.getElementById('sidebarName').textContent  = name;
+    document.getElementById('sidebarEmail').textContent = email;
     window.onload = () => admin.renderStaffGrid();
 </script>
 </html>
