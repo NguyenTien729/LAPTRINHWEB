@@ -48,34 +48,38 @@
 <div id="trainerModal" class="modal">
     <div class="modal-content coach-detail-modal">
         <div class="modal-header-row">
-            <h2 class="modal-title">Detail: <span id="modalTrainerId">NV004</span></h2>
+            <h2 class="modal-title">Detail: <span id="modalTrainerId"></span></h2>
             <button class="btn-close-x" onclick="app.closeTrainerModal()">X</button>
         </div>
         <div class="modal-body">
             <div class="input-group">
                 <label>Name:</label>
-                <input type="text" id="modalName" readonly>
+                <input type="text" id="modalName">
             </div>
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Date of birth:</label>
-                    <input type="text" id="modalDob" readonly>
+                    <input type="date" id="modalDob">
                 </div>
                 <div class="input-group">
                     <label>Gender:</label>
-                    <input type="text" id="modalGender" readonly>
+                    <input type="text" id="modalGender">
                 </div>
             </div>
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Contact no.:</label>
-                    <input type="text" id="modalContact" readonly>
+                    <input type="text" id="modalContact">
                 </div>
                 <div class="input-group">
                     <label>Specialty:</label>
-                    <input type="text" id="modalSpecialty" readonly>
+                    <input type="text" id="modalSpecialty">
                 </div>
             </div>
+        </div>
+        <div class="modal-footer" style="margin-top: 20px; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn-delete-rect" onclick="app.deleteTrainer()">Delete</button>
+            <button class="btn-save-changes" onclick="app.updateTrainer()">Save Changes</button>
         </div>
     </div>
 </div>

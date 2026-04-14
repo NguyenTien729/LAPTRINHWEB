@@ -212,7 +212,7 @@ class ManagerApp {
                 <td>${t.specialty}</td>
                 <td><button class="btn-detail-small"
                     onclick="app.openTrainerModal('${t.staffid}','${t.name}','${t.dob}','${t.gender}','${t.contact}','${t.specialty}')">
-                    Edit</button></td>
+                    Detail</button></td>
             </tr>`;
         });
     }
@@ -229,6 +229,48 @@ class ManagerApp {
 
     closeTrainerModal() { this._hide('trainerModal'); }
 
+    async updateTrainer() {
+        const trainerId = document.getElementById('modalTrainerId').innerText;
+        const data = {
+            name:      this._val('modalName'),
+            dob:       this._val('modalDob'),
+            gender:    this._val('modalGender'),
+            contact:   this._val('modalContact'),
+            specialty: this._val('modalSpecialty')
+        };
+
+        if (!data.name || !data.contact) {
+            alert("Vui lòng điền đầy đủ Tên và SĐT");
+            return;
+        }
+
+        try {
+            const res = await this._req(`/api/trainers/${trainerId}`, 'PUT', data);
+            if (res.success) {
+                alert("Cập nhật huấn luyện viên thành công!");
+                this._hide('trainerModal');
+                this.loadTrainers('trainerTbody');
+            }
+        } catch (err) {
+            alert("Lỗi khi cập nhật: " + err.message);
+        }
+    }
+
+    async deleteTrainer() {
+        const trainerId = document.getElementById('modalTrainerId').innerText;
+        if (!confirm(`Bạn có chắc chắn muốn xóa huấn luyện viên ${trainerId}?`)) return;
+
+        try {
+            const res = await this._req(`/api/trainers/${trainerId}`, 'DELETE');
+            if (res.success) {
+                alert("Đã xóa thành công");
+                this._hide('trainerModal');
+                this.loadTrainers('trainerTbody');
+            }
+        } catch (err) {
+            alert("Lỗi: " + err.message);
+        }
+    }
 
     async loadDashboard() {
         const [expiringMembers, trainers] = await Promise.all([

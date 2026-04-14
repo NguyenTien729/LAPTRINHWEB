@@ -57,7 +57,6 @@ class Admin {
         return await response.json();
     }
 
-    // ==================== UI ====================
 
     async renderStaffGrid() {
         const staffGrid = document.getElementById('staff-grid');
@@ -130,7 +129,6 @@ class Admin {
         document.getElementById('staffModal').style.display = 'none';
     }
 
-    // ==================== ACTIONS ====================
 
     async handleSubmit() {
         const staffId = document.getElementById('editStaffIdDisplay').value;

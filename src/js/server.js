@@ -530,7 +530,7 @@ app.get('/api/trainers', (req, res) => {
             nv.MaNV as staffid,
             nv.TenNV as name,
             nv.SDT as contact,
-            nv.NgaySinh as dob,
+            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob,
             nv.GioiTinh as gender,
             hlv.ChuyenMon as specialty
         FROM NHANVIEN nv
@@ -539,6 +539,102 @@ app.get('/api/trainers', (req, res) => {
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
         res.json(result);
+    });
+});
+
+app.put('/api/trainers/:id', (req, res) => {
+    const trainerId = req.params.id;
+    const { name, contact, dob, gender, specialty } = req.body;
+
+    if (!name || !contact) {
+        return res.status(400).json({
+            success: false,
+            message: "Thiếu thông tin bắt buộc!"
+        });
+    }
+
+    db.beginTransaction((err) => {
+        if (err) {
+            return res.status(500).json({ success: false, message: "Lỗi transaction" });
+        }
+
+        // 1. Update NHANVIEN
+        const sqlNV = `
+            UPDATE NHANVIEN
+            SET TenNV = ?, SDT = ?, NgaySinh = ?, GioiTinh = ?
+            WHERE MaNV = ?
+        `;
+
+        db.query(sqlNV, [name, contact, dob, gender, trainerId], (err, result1) => {
+            if (err) {
+                return db.rollback(() =>
+                    res.status(500).json({ success: false, message: "Lỗi update NHANVIEN" })
+                );
+            }
+
+            if (result1.affectedRows === 0) {
+                return db.rollback(() =>
+                    res.status(404).json({ success: false, message: "Không tìm thấy trainer!" })
+                );
+            }
+
+            // 2. Update HUANLUYENVIEN
+            const sqlHLV = `
+                UPDATE HUANLUYENVIEN
+                SET ChuyenMon = ?
+                WHERE MaNV = ?
+            `;
+
+            db.query(sqlHLV, [specialty, trainerId], (err, result2) => {
+                if (err) {
+                    return db.rollback(() =>
+                        res.status(500).json({ success: false, message: "Lỗi update HLV" })
+                    );
+                }
+
+                db.commit((err) => {
+                    if (err) {
+                        return db.rollback(() =>
+                            res.status(500).json({ success: false, message: "Lỗi commit" })
+                        );
+                    }
+
+                    res.json({
+                        success: true,
+                        message: "Cập nhật trainer thành công!"
+                    });
+                });
+            });
+        });
+    });
+});
+
+// API Xóa Trainer
+app.delete('/api/trainers/:id', (req, res) => {
+    const trainerId = req.params.id;
+
+    db.beginTransaction((err) => {
+        if (err) return res.status(500).json({ success: false, message: "Lỗi kết nối" });
+
+        // 1. Xóa trong bảng HUANLUYENVIEN
+        db.query("DELETE FROM HUANLUYENVIEN WHERE MaNV = ?", [trainerId], (err) => {
+            if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi xóa HLV" }));
+
+            // 2. Xóa USER liên quan (nếu cần)
+            db.query("DELETE FROM USER WHERE MaNV = ?", [trainerId], (err) => {
+                if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi xóa User" }));
+
+                // 3. Cuối cùng xóa NHANVIEN
+                db.query("DELETE FROM NHANVIEN WHERE MaNV = ?", [trainerId], (err) => {
+                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi xóa thông tin nhân viên" }));
+
+                    db.commit((err) => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false }));
+                        res.json({ success: true, message: "Đã xóa huấn luyện viên thành công" });
+                    });
+                });
+            });
+        });
     });
 });
 
