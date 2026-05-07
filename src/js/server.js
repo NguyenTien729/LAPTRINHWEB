@@ -7,6 +7,15 @@ const jwt = require('jsonwebtoken');
 const {decode} = require("jsonwebtoken");
 const JWT_SECRET = "max1236987";
 
+const crypto = require('crypto');
+const qs = require('qs');
+
+const vnp_TmnCode = "L78Z5RJL";
+const vnp_HashSecret = "H6WDRGINYRU2494CWFBN3WR0BBZ6GU2L";
+const vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+const vnp_ReturnUrl = "http://localhost:3000/api/vnpay-return";
+
+
 function verifyToken(req,res,next){
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -22,10 +31,27 @@ function verifyToken(req,res,next){
     });
 }
 
+function sortObject(obj) {
+    let sorted = {};
+    let str = [];
+    let key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            str.push(encodeURIComponent(key));
+        }
+    }
+    str.sort();
+    for (key = 0; key < str.length; key++) {
+        sorted[str[key]] = encodeURIComponent(obj[str[key]]).replace(/%20/g, "+");
+    }
+    return sorted;
+}
+
+
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
-app.use('/api',verifyToken);
+
 
 //MySQL
 const db = mysql.createConnection({
@@ -793,6 +819,109 @@ app.get('/api/trainer/members', (req, res) => {
         res.json(results);
     });
 });
+
+
+
+
+//Thanh toán online
+app.post('/api/create-payment-url', (req, res) => {
+    try {
+        const { amount, orderInfo } = req.body;
+
+        if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
+            return res.status(400).json({ success: false, message: "Số tiền không hợp lệ" });
+        }
+
+        const date = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const createDate = `${date.getFullYear()}${pad(date.getMonth()+1)}${pad(date.getDate())}${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+
+        const rawIp = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+        const ipAddr = rawIp.includes('::ffff:') ? rawIp.split('::ffff:')[1] : rawIp;
+
+        const safeOrderInfo = (orderInfo || 'AGym Payment')
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+            .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+            .replace(/[^a-zA-Z0-9 \-_.]/g, '')
+            .slice(0, 255);
+
+        let vnp_Params = {
+            vnp_Version: "2.1.0",
+            vnp_Command: "pay",
+            vnp_TmnCode: vnp_TmnCode,
+            vnp_Locale: "vn",
+            vnp_CurrCode: "VND",
+            vnp_TxnRef: Date.now().toString(),
+            vnp_OrderInfo: safeOrderInfo,
+            vnp_OrderType: "other",
+            vnp_Amount: Math.round(Number(amount)) * 100,
+            vnp_ReturnUrl: vnp_ReturnUrl,
+            vnp_IpAddr: ipAddr,
+            vnp_CreateDate: createDate
+        };
+
+        vnp_Params = sortObject(vnp_Params);
+
+        const signData = qs.stringify(vnp_Params, { encode: false });
+        const hmac = crypto.createHmac("sha512", vnp_HashSecret);
+        const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+
+        vnp_Params['vnp_SecureHash'] = signed;
+
+        const paymentUrl = vnp_Url + '?' + qs.stringify(vnp_Params, { encode: false });
+
+        console.log('[VNPay] Created payment URL for amount:', amount, '| TxnRef:', vnp_Params.vnp_TxnRef);
+        res.json({ paymentUrl });
+
+    } catch (err) {
+        console.error('[VNPay] Error creating payment URL:', err);
+        res.status(500).json({ success: false, message: 'Lỗi tạo URL thanh toán: ' + err.message });
+    }
+});
+
+
+app.get('/api/vnpay-return', (req, res) => {
+    let vnp_Params = { ...req.query };
+    const secureHash = vnp_Params['vnp_SecureHash'];
+
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortObject(vnp_Params);
+
+    const signData = qs.stringify(vnp_Params, { encode: false });
+    const hmac = crypto.createHmac("sha512", vnp_HashSecret);
+    const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+
+    const responseCode = req.query['vnp_ResponseCode'];
+
+    if (secureHash === signed) {
+        if (responseCode === '00') {
+            res.send(`
+                <script>
+                    alert("Giao dịch đã được xử lý thành công!");
+                    window.close();
+                </script>
+            `);
+        } else {
+            res.send(`
+                <script>
+                    alert("Thanh toán thất bại! Mã lỗi: ${responseCode}");
+                    window.close();
+                </script>
+            `);
+        }
+    } else {
+        res.send(`
+            <script>
+                alert("Chữ ký không hợp lệ!");
+                window.close();
+            </script>
+        `);
+    }
+});
+
+app.use('/api',verifyToken);
 
 app.listen(3000, () => {
     console.log('Server đang chạy tại http://localhost:3000');

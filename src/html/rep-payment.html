@@ -59,7 +59,9 @@
         <div class="form-actions-right">
             <button class="btn-primary" onclick="app.savePayment()">Save</button>
             <button class="btn-cancel">Cancel</button>
-            <button class="btn-purple" onclick="app.showQR()">Mã thanh toán</button>
+            <button class="btn-vnpay" onclick="app.payWithVNPay()">
+                Thanh toán VNPay
+            </button>
         </div>
     </div>
 
@@ -81,13 +83,49 @@
     </div>
 </main>
 
-<div id="qrModal" class="modal" >
-    <div style="position:relative; margin:10% auto; padding:20px; width:300px; background:white; border-radius:8px; text-align:center;">
-        <span onclick="app.hideQR()" style="position:absolute; right:10px; top:5px; cursor:pointer; font-size:24px;">&times;</span>
-        <h3>Quét mã để thanh toán</h3>
-        <img src="assets/QR.jpg" alt="QR Code" style="width:100%; height:auto; margin-top:10px;">
+
+<!-- Modal chờ xác nhận VNPay -->
+<div id="vnpayWaitModal" class="modal" style="display:none;">
+    <div style="position:relative; margin:8% auto; padding:30px 24px; width:360px; background:#fff; border-radius:12px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <div style="width:64px;height:64px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#00b14f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3 style="margin:0 0 8px;color:#1a1a2e;font-size:18px;">Đang chờ thanh toán VNPay</h3>
+        <p style="color:#666;font-size:14px;margin:0 0 6px;">Một tab mới đã mở tới cổng thanh toán VNPay.</p>
+        <p style="color:#666;font-size:14px;margin:0 0 24px;">Sau khi thanh toán thành công, nhấn <strong>"Xác nhận"</strong> để lưu giao dịch.</p>
+        <div style="background:#fffbea;border:1px solid #ffe082;border-radius:8px;padding:10px 14px;margin-bottom:20px;text-align:left;">
+            <p style="margin:0;font-size:12px;color:#795548;">⚠️ <strong>Môi trường Sandbox:</strong> Dùng thẻ test VNPay<br>
+                <code style="font-size:11px;">9704198526191432198 / NGUYEN VAN A / 07/15 / OTP: 123456</code></p>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;">
+            <button onclick="app.cancelVNPay()"
+                    style="flex:1;padding:10px;border:1px solid #ddd;background:#fff;border-radius:8px;cursor:pointer;font-size:14px;color:#666;">
+                Hủy
+            </button>
+            <button onclick="app.confirmVNPaySuccess()"
+                    style="flex:1;padding:10px;background:#00b14f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600;">
+                ✓ Xác nhận đã thanh toán
+            </button>
+        </div>
     </div>
 </div>
+
+<!-- Modal thành công -->
+<div id="vnpaySuccessModal" class="modal" style="display:none;">
+    <div style="position:relative; margin:10% auto; padding:32px 24px; width:320px; background:#fff; border-radius:12px; text-align:center; box-shadow:0 8px 32px rgba(0,0,0,0.18);">
+        <div style="width:72px;height:72px;background:#e8f5e9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#00b14f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <h3 style="margin:0 0 8px;color:#1a1a2e;font-size:20px;">Thanh toán thành công!</h3>
+        <p style="color:#666;font-size:14px;margin:0 0 24px;">Giao dịch đã được lưu vào hệ thống.</p>
+        <button onclick="app.closeVNPaySuccess()"
+                style="width:100%;padding:12px;background:#00b14f;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:15px;font-weight:600;">
+            Đóng
+        </button>
+    </div>
+</div>
+
+
 
 <script src="../js/Receptionist.js"></script>
 <script>
@@ -98,7 +136,29 @@
     document.getElementById('sidebarEmail').textContent = email;
     window.onload = () => {
         app.loadPayments();
-        app.iniPayment()
+        app.iniPayment();
+
+        // Xử lý kết quả callback từ VNPay
+        const params = new URLSearchParams(window.location.search);
+        const result = params.get('vnpay_result');
+        if (result === 'success') {
+            // Lưu DB nếu còn dữ liệu pending
+            const pending = sessionStorage.getItem('pendingPayment');
+            if (pending) {
+                app.confirmVNPaySuccess();
+            } else {
+                app._show('vnpaySuccessModal');
+            }
+            // Xóa query params khỏi URL
+            history.replaceState({}, '', 'rep-payment.html');
+        } else if (result === 'fail') {
+            const code = params.get('code');
+            alert(`Thanh toán VNPay thất bại! Mã lỗi: ${code}`);
+            history.replaceState({}, '', 'rep-payment.html');
+        } else if (result === 'invalid') {
+            alert("Chữ ký VNPay không hợp lệ!");
+            history.replaceState({}, '', 'rep-payment.html');
+        }
     }
 </script>
 </body>

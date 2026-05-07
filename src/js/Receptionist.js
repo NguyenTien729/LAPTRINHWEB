@@ -212,15 +212,46 @@ class ReceptionistApp {
     }
 
     async savePayment() {
+        const startDateVal = this._val('paymentDate'); // Lấy chuỗi yyyy-mm-dd
+        const packageId = this._val('packageSelect');
+        const selectedPkg = this._pkgs.find(p => p.packageid === packageId);
+        if (!selectedPkg) {
+            alert("Vui lòng chọn Gói tập!");
+            return;
+        }
+        const sDate = new Date(startDateVal);
+
+        // Kiểm tra nếu đối tượng Date không hợp lệ
+        if (isNaN(sDate.getTime())) {
+            alert("Định dạng ngày bắt đầu không hợp lệ!");
+            return;
+        }
+
+        const validityDays = parseInt(selectedPkg.validity);
+        const eDateObj = new Date(sDate);
+        eDateObj.setDate(sDate.getDate() + validityDays);
+
+        // Chuyển về định dạng yyyy-mm-dd
+        const edate = eDateObj.toISOString().split('T')[0];
+
+        console.log("Sdate:", startDateVal); // Kiểm tra log ở Console
+        console.log("Edate:", edate);
+
         const data = {
             memberName:  this._val('paymentMember'),
-            packageId:   this._val('packageSelect'),
-            date:        this._val('paymentDate'),
-            paymentType: 'Tiền mặt'
+            packageId:   packageId,
+            maLich:      this._val('scheduleSelect'),
+            amount:      this._val('priceInput'),
+            sdate:       startDateVal, // Gửi ngày bắt đầu
+            edate:       edate,        // Gửi ngày kết thúc
+            paymentType: this._val('paymentMethod')
         };
-        const result = await this._req('/api/payments', 'POST', data);
-        if (result.success) { alert('Lưu thành công!'); this.loadPayments(); }
-        else alert('Lỗi: ' + result.message);
+
+        const res = await this._req('/api/payments-full', 'POST', data);
+        if (res.success) {
+            alert(res.message);
+            this.loadPayments('paymentTbody');
+        }
     }
 
     async iniPayment() {
@@ -255,13 +286,90 @@ class ReceptionistApp {
         }
     }
 
-    onPackageChange(selectEl, priceInputId) {
-        const el = document.getElementById(priceInputId);
-        if (el) el.value = selectEl.value ? this._fmtMoney(selectEl.value) : '';
+
+    // ── VNPay ────────────────────────────────────────────────
+
+    _buildPaymentData() {
+        const startDateVal = this._val('paymentDate');
+        const packageId    = this._val('packageSelect');
+        const selectedPkg  = this._pkgs ? this._pkgs.find(p => p.packageid === packageId) : null;
+
+        if (!selectedPkg) { alert("Vui lòng chọn Gói tập!"); return null; }
+        if (!startDateVal || isNaN(new Date(startDateVal).getTime())) {
+            alert("Định dạng ngày bắt đầu không hợp lệ!"); return null;
+        }
+        const sDate = new Date(startDateVal);
+        const eDateObj = new Date(sDate);
+        eDateObj.setDate(sDate.getDate() + parseInt(selectedPkg.validity));
+        const edate = eDateObj.toISOString().split('T')[0];
+
+        return {
+            memberName:  this._val('paymentMember'),
+            packageId,
+            maLich:      this._val('scheduleSelect'),
+            amount:      this._val('priceInput'),
+            sdate:       startDateVal,
+            edate,
+            paymentType: 'Chuyển khoản'   // VNPay = chuyển khoản online
+        };
     }
 
-    showQR() { this._show('qrModal'); }
-    hideQR() { this._hide('qrModal'); }
+    async payWithVNPay() {
+        const data = this._buildPaymentData();
+        if (!data) return;
+        if (!data.memberName) { alert("Vui lòng nhập tên hội viên!"); return; }
+        if (!data.amount || Number(data.amount) <= 0) { alert("Số tiền không hợp lệ!"); return; }
+
+        // Lưu thông tin payment vào sessionStorage để dùng sau khi VNPay callback
+        sessionStorage.setItem('pendingPayment', JSON.stringify(data));
+
+        try {
+            const res = await this._req('/api/create-payment-url', 'POST', {
+                amount: Number(data.amount),
+                orderInfo: `AGym - ${data.memberName} - ${data.packageId}`
+            });
+
+            if (res.paymentUrl) {
+                // Mở VNPay trong tab mới (sandbox demo)
+                window.open(res.paymentUrl, '_blank');
+                // Hiện modal chờ xác nhận
+                this._show('vnpayWaitModal');
+            } else {
+                alert("Không tạo được URL thanh toán VNPay!");
+            }
+        } catch (err) {
+            alert("Lỗi kết nối VNPay: " + err.message);
+        }
+    }
+
+    // Gọi sau khi user xác nhận đã thanh toán thành công trên VNPay
+    async confirmVNPaySuccess() {
+        const raw = sessionStorage.getItem('pendingPayment');
+        if (!raw) { alert("Không tìm thấy thông tin thanh toán!"); return; }
+        const data = JSON.parse(raw);
+
+        try {
+            const res = await this._req('/api/payments-full', 'POST', data);
+            if (res.success) {
+                sessionStorage.removeItem('pendingPayment');
+                this._hide('vnpayWaitModal');
+                this._show('vnpaySuccessModal');
+                this.loadPayments('paymentTbody');
+            } else {
+                alert("Lỗi lưu thanh toán: " + res.message);
+            }
+        } catch (err) {
+            alert("Lỗi: " + err.message);
+        }
+    }
+
+    cancelVNPay() {
+        sessionStorage.removeItem('pendingPayment');
+        this._hide('vnpayWaitModal');
+    }
+
+    closeVNPaySuccess() { this._hide('vnpaySuccessModal'); }
+
 
     //Package
 

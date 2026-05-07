@@ -621,3 +621,20 @@ td { padding: 12px; border-bottom: 1px solid #f9fafb; }
     padding: 4px 15px;
     cursor: pointer;
 }
+
+.btn-vnpay {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    background: linear-gradient(135deg, #00b14f, #007d38);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+.btn-vnpay:hover { opacity: 0.88; }
+.btn-vnpay img { width: 20px; height: 20px; object-fit: contain; }
