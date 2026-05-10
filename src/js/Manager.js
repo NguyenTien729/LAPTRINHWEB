@@ -117,20 +117,23 @@ class ManagerApp {
                 <td>${m.name}</td>
                 <td>${m.memberid}</td>
                 <td>${m.date_enrolled ?? ''}</td>
-                <td>${m.date_expiry ?? ''}</td>
+                <td>${m.date_expiry ?? ''}</td>              
                 <td><button class="btn-detail-pill"
-                    onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                    onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}', ${m.is_vip || 0})">
                     Detail</button></td>
+                <td>${m.is_vip ? '⭐' : ''}</td>
             </tr>`;
         });
     }
 
-    openMemberModal(id, name, dob, gender, contact) {
+    openMemberModal(id, name, dob, gender, contact, isVip) {
         this._txt('modalMemberId', id);
         this._set('memberFullname', name);
         this._set('memberDob',      dob);
         this._set('memberGender',   gender);
         this._set('memberContact',  contact);
+        const vipCheckbox = document.getElementById('memberIsVip');
+        if (vipCheckbox) vipCheckbox.checked = !!isVip;
         this._show('memberModal');
     }
 
@@ -148,7 +151,8 @@ class ManagerApp {
             name:    this._val('memberFullname'),
             dob:     this._val('memberDob'),
             gender:  this._val('memberGender'),
-            contact: this._val('memberContact')
+            contact: this._val('memberContact'),
+            is_vip:  document.getElementById('memberIsVip').checked ? 1 : 0
         };
 
         if (!data.name || !data.contact) {
@@ -185,8 +189,9 @@ class ManagerApp {
                     <td>${m.date_enrolled ?? ''}</td>
                     <td>${m.date_expiry ?? ''}</td>
                     <td><button class="btn-detail-pill"
-                        onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
+                        onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}', ${m.is_vip || 0})">
                         Detail</button></td>
+                    <td>${m.is_vip ? '⭐' : ''}</td>
                 </tr>`;
                 });
             }
@@ -529,7 +534,14 @@ class ManagerApp {
     }
     onPackageChange(el) {
         const pkg = this._pkgs.find(p => p.packageid === el.value);
-        document.getElementById('priceInput').value = pkg ? pkg.price : '';
+        if (pkg) {
+            this._basePrice = Number(pkg.price); // lưu giá GỐC dạng Number, bất biến
+            this._set('priceInput', this._basePrice);
+            this.applyVipIfNeeded();
+        } else {
+            this._basePrice = null;
+            this._set('priceInput', '');
+        }
     }
     onScheduleChange(el) {
         const sch = this._schs.find(s => s.MaLich === el.value);
@@ -552,7 +564,6 @@ class ManagerApp {
         }
         const sDate = new Date(startDateVal);
 
-        // Kiểm tra nếu đối tượng Date không hợp lệ
         if (isNaN(sDate.getTime())) {
             alert("Định dạng ngày bắt đầu không hợp lệ!");
             return;
@@ -562,7 +573,6 @@ class ManagerApp {
         const eDateObj = new Date(sDate);
         eDateObj.setDate(sDate.getDate() + validityDays);
 
-        // Chuyển về định dạng yyyy-mm-dd
         const edate = eDateObj.toISOString().split('T')[0];
 
         console.log("Sdate:", startDateVal); // Kiểm tra log ở Console
@@ -650,4 +660,38 @@ class ManagerApp {
         document.getElementById('reportTo').value = formatDate(today);
 
     }
+
+    async applyVipIfNeeded() {
+        const memberName = this._val('paymentMember').trim();
+        const old = document.getElementById('vipBadge');
+        if (old) old.remove();
+        if (!memberName || !this._basePrice) {
+            if (this._basePrice) this._set('priceInput', this._basePrice);
+            return;
+        }
+
+        try {
+            const res  = await authFetch(`${this.apiBase}/api/members/check-vip?name=${encodeURIComponent(memberName)}`);
+            const data = await res.json();
+
+            if (data.is_vip) {
+                const discounted = Math.round(this._basePrice * 0.9); // luôn từ _basePrice
+                this._set('priceInput', discounted);
+
+                const priceInput = document.getElementById('priceInput');
+                if (priceInput) {
+                    const badge = document.createElement('span');
+                    badge.id = 'vipBadge';
+                    badge.textContent = '⭐ 10% VIP discount';
+                    badge.style.cssText = 'margin-left:8px;background:#f59e0b;color:#fff;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600;vertical-align:middle;';
+                    priceInput.insertAdjacentElement('afterend', badge);
+                }
+            } else {
+                this._set('priceInput', this._basePrice);
+            }
+        } catch (err) {
+            if (this._basePrice) this._set('priceInput', this._basePrice);
+        }
+    }
+
 }

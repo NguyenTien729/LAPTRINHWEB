@@ -109,6 +109,7 @@ class ReceptionistApp {
                 <td><button class="btn-detail-pill"
                     onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
                     Detail</button></td>
+                <td>${m.is_vip ? '⭐' : ''}</td>
             </tr>`;
         });
     }
@@ -150,6 +151,7 @@ class ReceptionistApp {
                     <td><button class="btn-detail-pill"
                         onclick="app.openMemberModal('${m.memberid}','${m.name}','${m.dob}','${m.gender}','${m.contact}')">
                         Detail</button></td>
+                    <td>${m.is_vip ? '⭐' : ''}</td>
                 </tr>`;
                 });
             }
@@ -272,7 +274,48 @@ class ReceptionistApp {
     }
     onPackageChange(el) {
         const pkg = this._pkgs.find(p => p.packageid === el.value);
-        document.getElementById('priceInput').value = pkg ? pkg.price : '';
+        if (pkg) {
+            this._basePrice = Number(pkg.price); // lưu giá GỐC dạng Number, bất biến
+            this._set('priceInput', this._basePrice);
+            this.applyVipIfNeeded();
+        } else {
+            this._basePrice = null;
+            this._set('priceInput', '');
+        }
+    }
+
+    async applyVipIfNeeded() {
+        const memberName = this._val('paymentMember').trim();
+        const old = document.getElementById('vipBadge');
+        if (old) old.remove();
+
+        if (!memberName || !this._basePrice) {
+            if (this._basePrice) this._set('priceInput', this._basePrice);
+            return;
+        }
+
+        try {
+            const res  = await authFetch(`${this.apiBase}/api/members/check-vip?name=${encodeURIComponent(memberName)}`);
+            const data = await res.json();
+
+            if (data.is_vip) {
+                const discounted = Math.round(this._basePrice * 0.9);
+                this._set('priceInput', discounted);
+
+                const priceInput = document.getElementById('priceInput');
+                if (priceInput) {
+                    const badge = document.createElement('span');
+                    badge.id = 'vipBadge';
+                    badge.textContent = '⭐ VIP -10%';
+                    badge.style.cssText = 'margin-left:8px;background:#f59e0b;color:#fff;padding:3px 10px;border-radius:12px;font-size:13px;font-weight:600;vertical-align:middle;';
+                    priceInput.insertAdjacentElement('afterend', badge);
+                }
+            } else {
+                this._set('priceInput', this._basePrice);
+            }
+        } catch (err) {
+            if (this._basePrice) this._set('priceInput', this._basePrice);
+        }
     }
 
     onScheduleChange(el) {
@@ -430,4 +473,3 @@ class ReceptionistApp {
         else alert('Lỗi: ' + result.message);
     }
 }
-

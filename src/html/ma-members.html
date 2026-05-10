@@ -42,7 +42,7 @@
         </div>
         <table>
             <thead>
-            <tr><th># Name</th><th>Member ID</th><th>Date Enrolled</th><th>Date Expiration</th><th>Actions</th></tr>
+            <tr><th># Name</th><th>Member ID</th><th>Date Enrolled</th><th>Date Expiration</th><th>Actions</th><th>VIP status</th></tr>
             </thead>
             <tbody id="memberTbody"></tbody>
         </table>
@@ -60,7 +60,6 @@
                 <label>Name:</label>
                 <input type="text" id="memberFullname" >
             </div>
-
             <div class="modal-grid">
                 <div class="input-group">
                     <label>Date of birth:</label>
@@ -76,6 +75,11 @@
                 <label>Contact no.:</label>
                 <input type="text" id="memberContact" >
             </div>
+
+            <div class="input-group">
+                <label>VIP Member:</label>
+                <input type="checkbox" id="memberIsVip" style="width: 20px; height: 20px;">
+            </div>
         </div>
 
         <div class="modal-footer">
@@ -83,6 +87,7 @@
             <button class="btn-save-changes" onclick="app.updateMember()">Save changes</button>
         </div>
     </div>
+
 </div>
 <script src="../js/Manager.js"></script>
 <script>

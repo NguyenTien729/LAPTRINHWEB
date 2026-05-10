@@ -35,7 +35,8 @@
     <h2 class="page-title">Add Payment</h2>
     <div class="card payment-form">
         <div class="form-grid-three">
-            <input type="text" id="paymentMember" placeholder="Name of Member">
+            <input type="text" id="paymentMember" placeholder="Name of Member"
+                   onblur="app.applyVipIfNeeded()">
             <select id="packageSelect" onchange="app.onPackageChange(this, 'priceInput')">
                 <option value="">Chọn gói tập</option>
             </select>
@@ -58,7 +59,6 @@
         </div>
         <div class="form-actions-right">
             <button class="btn-primary" onclick="app.savePayment()">Save</button>
-            <button class="btn-cancel">Cancel</button>
             <button class="btn-vnpay" onclick="app.payWithVNPay()">
                 Thanh toán VNPay
             </button>
@@ -137,12 +137,11 @@
     window.onload = () => {
         app.loadPayments();
         app.iniPayment();
+        document.getElementById('paymentDate').value = new Date().toISOString().split('T')[0];
 
-        // Xử lý kết quả callback từ VNPay
         const params = new URLSearchParams(window.location.search);
         const result = params.get('vnpay_result');
         if (result === 'success') {
-            // Lưu DB nếu còn dữ liệu pending
             const pending = sessionStorage.getItem('pendingPayment');
             if (pending) {
                 app.confirmVNPaySuccess();

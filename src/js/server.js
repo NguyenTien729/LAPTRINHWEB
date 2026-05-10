@@ -176,22 +176,22 @@ app.delete('/api/staffs/:id', (req, res) => {
 //API lấy thông tin nhân viên
 app.get('/api/staffs', (req, res) => {
     const sql = `
-        SELECT 
-            nv.MaNV as staffId, 
-            nv.TenNV as name, 
-            u.UserName as username, 
-            u.Password as pass, 
-            u.Status as status, 
-            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob, 
-            nv.GioiTinh as gender, 
-            nv.SDT as contact, 
-            nv.Email as email, 
+        SELECT
+            nv.MaNV as staffId,
+            nv.TenNV as name,
+            u.UserName as username,
+            u.Password as pass,
+            u.Status as status,
+            DATE_FORMAT(nv.NgaySinh,'%Y-%m-%d') as dob,
+            nv.GioiTinh as gender,
+            nv.SDT as contact,
+            nv.Email as email,
             nv.MaCV as role_id,
-            cv.TenChucVu as role_name, 
+            cv.TenChucVu as role_name,
             (cv.Luong * nv.HeSoLuong) as salary_num
         FROM NHANVIEN nv
-        LEFT JOIN USER u ON nv.MaNV = u.MaNV
-        LEFT JOIN CHUCVU cv ON nv.MaCV = cv.MaCV
+                 LEFT JOIN USER u ON nv.MaNV = u.MaNV
+                 LEFT JOIN CHUCVU cv ON nv.MaCV = cv.MaCV
     `;
     db.query(sql, (err, results) => {
         if (err) return res.status(500).json({ error: err.message });
@@ -248,9 +248,9 @@ app.put('/api/staffs/:id', async (req, res) => {
             if (err) return res.status(500).json({success: false, message: err.message});
             //Cập nhật NHANVIEN
             const sqlNV = `
-            UPDATE NHANVIEN 
-            SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?, MaCV=?
-            WHERE MaNV = ?`;
+                UPDATE NHANVIEN
+                SET TenNV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, Email = ?, MaCV=?
+                WHERE MaNV = ?`;
 
             db.query(sqlNV, [name, dob, gender, contact, email, role, staffId], (err, result) => {
                 if (err) {
@@ -261,9 +261,9 @@ app.put('/api/staffs/:id', async (req, res) => {
 
                 // Cập nhật USER
                 const sqlU = `
-                UPDATE USER 
-                SET UserName = ?, Password = ?, Status = ? 
-                WHERE MaNV = ?`;
+                    UPDATE USER
+                    SET UserName = ?, Password = ?, Status = ?
+                    WHERE MaNV = ?`;
 
 
                 db.query(sqlU, [username, password, status, staffId], (err, result) => {
@@ -299,8 +299,8 @@ app.put('/api/staffs/:id/profile', (req, res) => {
         }
         // 1. Cập nhật NHANVIEN
         const sqlNV = `
-            UPDATE NHANVIEN 
-            SET TenNV = ?, NgaySinh = ?, SDT = ?, Email = ? 
+            UPDATE NHANVIEN
+            SET TenNV = ?, NgaySinh = ?, SDT = ?, Email = ?
             WHERE MaNV = ?`;
 
         db.query(sqlNV, [name, dob, contact, email, staffId], (err, result) => {
@@ -354,10 +354,10 @@ app.get('/api/dashboard/expiring-members', (req, res) => {
             DATE_FORMAT(dk.NgayBatDau,'%Y-%m-%d') as date_enrolled,
             DATE_FORMAT(dk.NgayKetThuc,'%Y-%m-%d') as date_expiry
         FROM HOIVIEN hv
-        INNER JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+                 INNER JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
         WHERE dk.NgayKetThuc >= CURDATE()
         ORDER BY dk.NgayKetThuc ASC
-        LIMIT 5
+            LIMIT 5
     `;
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
@@ -371,13 +371,14 @@ app.get('/api/members', (req, res) => {
         SELECT
             hv.MaHV as memberid,
             hv.TenHV as name,
-            DATE_FORMAT( hv.NgaySinh,'%Y-%m-%d') as dob, 
+            DATE_FORMAT( hv.NgaySinh,'%Y-%m-%d') as dob,
             hv.GioiTinh as gender,
             hv.SDT as contact,
             DATE_FORMAT( dk.NgayBatDau,'%Y-%m-%d') as date_enrolled,
-            DATE_FORMAT( dk.NgayKetThuc,'%Y-%m-%d') as date_expiry
+            DATE_FORMAT( dk.NgayKetThuc,'%Y-%m-%d') as date_expiry,
+            hv.is_vip as is_vip
         FROM HOIVIEN hv
-        LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+                 LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
     `;
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
@@ -405,11 +406,11 @@ const generateNextId = (table, column, prefix) => {
 
 //API sửa hội viên
 app.put('/api/members/:id', (req, res) => {
-    const { name, dob, gender, contact } = req.body;
+    const { name, dob, gender, contact ,is_vip} = req.body;
     const id = req.params.id;
 
-    const sql = "UPDATE HOIVIEN SET TenHV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ? WHERE MaHV = ?";
-    db.query(sql, [name, dob, gender, contact, id], (err, result) => {
+    const sql = "UPDATE HOIVIEN SET TenHV = ?, NgaySinh = ?, GioiTinh = ?, SDT = ?, is_vip = ? WHERE MaHV = ?";
+    db.query(sql, [name, dob, gender, contact, is_vip||0, id], (err, result) => {
         if (err) return res.status(500).json({ success: false, message: err.message });
         res.json({ success: true, message: "Đã cập nhật" });
     });
@@ -437,21 +438,22 @@ app.get('/api/members/search', (req, res) => {
     const searchVal = `%${keyword}%`;
 
     const sql = `
-        SELECT 
-            hv.MaHV as memberid, 
-            hv.TenHV as name, 
+        SELECT
+            hv.MaHV as memberid,
+            hv.TenHV as name,
             DATE_FORMAT(hv.NgaySinh, '%Y-%m-%d') as dob,
             hv.GioiTinh as gender,
             hv.SDT as contact,
             MAX(DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d')) as date_enrolled,
-            MAX(DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d')) as date_expiry
+            MAX(DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d')) as date_expiry,
+            hv.is_vip as is_vip
         FROM HOIVIEN hv
-        LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
-        WHERE 
-            hv.MaHV LIKE ? OR 
-            hv.TenHV LIKE ? OR 
-            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') LIKE ?  
-        GROUP BY hv.MaHV, hv.TenHV, hv.NgaySinh, hv.GioiTinh, hv.SDT`;
+                 LEFT JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+        WHERE
+            hv.MaHV LIKE ? OR
+            hv.TenHV LIKE ? OR
+            DATE_FORMAT(dk.NgayBatDau, '%Y-%m-%d') LIKE ?
+        GROUP BY hv.MaHV, hv.TenHV, hv.NgaySinh, hv.GioiTinh, hv.SDT, hv.is_vip`;
 
     db.query(sql, [searchVal, searchVal, searchVal], (err, results) => {
         if (err) {
@@ -481,10 +483,10 @@ app.get('/api/payments/search', (req, res) => {
                  JOIN DANGKYTAP dk ON tt.MaDK = dk.MaDK
                  JOIN HOIVIEN hv ON dk.MaHV = hv.MaHV
                  JOIN GOITAP gt ON dk.MaGoi = gt.MaGoi
-        WHERE 
-            hv.MaHV LIKE ? OR 
-            hv.TenHV LIKE ? OR 
-            gt.TenGOi LIKE ? OR 
+        WHERE
+            hv.MaHV LIKE ? OR
+            hv.TenHV LIKE ? OR
+            gt.TenGOi LIKE ? OR
             DATE_FORMAT(tt.NgayTT, '%Y-%m-%d') LIKE ? OR
             tt.HinhThucTT LIKE ?
         ORDER BY tt.NgayTT DESC `;
@@ -504,10 +506,11 @@ app.get('/api/payments/search', (req, res) => {
 app.post('/api/payments-full', async (req, res) => {
     const { memberName, packageId, maLich, sdate, edate, paymentType, amount } = req.body;
 
-    // check tên hội viên
-    db.query("SELECT MaHV FROM HOIVIEN WHERE TenHV = ?", [memberName], async (err, members) => {
+    // check tên hội viên + lấy is_vip
+    db.query("SELECT MaHV, is_vip FROM HOIVIEN WHERE TenHV = ?", [memberName], async (err, members) => {
         if (err || members.length === 0) return res.status(400).json({ success: false, message: "Hội viên chưa tồn tại!" });
-        const maHV = members[0].MaHV;
+        const maHV   = members[0].MaHV;
+        const finalAmount = parseFloat(amount) || 0;
 
         try {
             const maDK = await generateNextId('DANGKYTAP', 'MaDK', 'DK');
@@ -517,13 +520,17 @@ app.post('/api/payments-full', async (req, res) => {
                 // Thêm DANGKYTAP
                 const sqlDK = "INSERT INTO DANGKYTAP (MaDK, MaHV, MaGoi, MaLich, NgayBatDau, NgayKetThuc) VALUES (?,?,?,?,?,?)";
                 db.query(sqlDK, [maDK, maHV, packageId, maLich, sdate, edate], (err) => {
-                    if (err) return db.rollback(() => res.status(500).json({message: "Lỗi DK"}));
-                    // Thêm THANHTOAN
-                    const sqlTT = "INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai) VALUES (?,?,NOW(),?,?,'Đã thanh toán')";
-                    db.query(sqlTT, [maTT, maDK, amount, paymentType], (err) => {
-                        if (err) return db.rollback(() => res.status(500).json({message: "Lỗi TT"}));
+                    if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi DK" }));
 
-                        db.commit(() => res.json({ success: true, message: `Thành công! Mã DK: ${maDK}, Mã TT: ${maTT}` }));
+                    // Thêm THANHTOAN với giá đã tính VIP
+                    const sqlTT = "INSERT INTO THANHTOAN (MaTT, MaDK, NgayTT, SoTien, HinhThucTT, TrangThai) VALUES (?,?,NOW(),?,?,'Đã thanh toán')";
+                    db.query(sqlTT, [maTT, maDK, finalAmount, paymentType], (err) => {
+                        if (err) return db.rollback(() => res.status(500).json({ success: false, message: "Lỗi TT" }));
+
+                        db.commit(() => res.json({
+                            success: true,
+                            message:"Thành công"
+                        }));
                     });
                 });
             });
@@ -536,11 +543,11 @@ app.post('/api/payments-full', async (req, res) => {
 //API lấy lịch dạy
 app.get('/api/schedules-detail', (req, res) => {
     const sql = `
-        SELECT ld.MaLich, ld.MaHLV, nv.TenNV, ld.GioBatDau, ld.GioKetThuc, 
+        SELECT ld.MaLich, ld.MaHLV, nv.TenNV, ld.GioBatDau, ld.GioKetThuc,
                GROUP_CONCAT(lt.Thu ORDER BY lt.Thu) as CácThứ
         FROM LICHDAY ld
-        JOIN NHANVIEN nv ON ld.MaHLV = nv.MaNV
-        JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
+                 JOIN NHANVIEN nv ON ld.MaHLV = nv.MaNV
+                 JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
         GROUP BY ld.MaLich
     `;
     db.query(sql, (err, results) => {
@@ -560,7 +567,7 @@ app.get('/api/trainers', (req, res) => {
             nv.GioiTinh as gender,
             hlv.ChuyenMon as specialty
         FROM NHANVIEN nv
-        INNER JOIN HUANLUYENVIEN hlv ON nv.MaNV = hlv.MaNV
+                 INNER JOIN HUANLUYENVIEN hlv ON nv.MaNV = hlv.MaNV
     `;
     db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
@@ -719,9 +726,9 @@ app.get('/api/payments', (req, res) => {
             tt.HinhThucTT as payment_type,
             tt.TrangThai as status
         FROM THANHTOAN tt
-        JOIN DANGKYTAP dk ON tt.MaDK = dk.MaDK
-        JOIN HOIVIEN hv ON dk.MaHV = hv.MaHV
-        JOIN GOITAP gt ON dk.MaGoi = gt.MaGoi
+                 JOIN DANGKYTAP dk ON tt.MaDK = dk.MaDK
+                 JOIN HOIVIEN hv ON dk.MaHV = hv.MaHV
+                 JOIN GOITAP gt ON dk.MaGoi = gt.MaGoi
         ORDER BY tt.NgayTT DESC
     `;
     db.query(sql, (err, result) => {
@@ -777,10 +784,10 @@ app.delete('/api/packages/:id', (req, res) => {
 app.get('/api/trainer/schedules/:trainerId', (req, res) => {
     const trainerId = req.params.trainerId;
     const sql = `
-        SELECT ld.MaLich, ld.GioBatDau, ld.GioKetThuc, 
+        SELECT ld.MaLich, ld.GioBatDau, ld.GioKetThuc,
                GROUP_CONCAT(lt.Thu ORDER BY lt.Thu) as ThuTrongTuan
         FROM LICHDAY ld
-        JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
+                 JOIN LICHTHU lt ON ld.MaLich = lt.MaLich
         WHERE ld.MaHLV = ?
         GROUP BY ld.MaLich`;
 
@@ -794,9 +801,9 @@ app.get('/api/trainer/schedules/:trainerId', (req, res) => {
 app.get('/api/trainer/members', (req, res) => {
     const { trainerId, maLich } = req.query;
     let sql = `
-        SELECT 
-            hv.MaHV as memberid, 
-            hv.TenHV as name, 
+        SELECT
+            hv.MaHV as memberid,
+            hv.TenHV as name,
             DATE_FORMAT(hv.NgaySinh, '%Y-%m-%d') as dob,
             hv.GioiTinh as gender,
             hv.SDT as contact,
@@ -804,8 +811,8 @@ app.get('/api/trainer/members', (req, res) => {
             DATE_FORMAT(dk.NgayKetThuc, '%Y-%m-%d') as date_expiry,
             dk.MaLich
         FROM HOIVIEN hv
-        JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
-        JOIN LICHDAY ld ON dk.MaLich = ld.MaLich
+                 JOIN DANGKYTAP dk ON hv.MaHV = dk.MaHV
+                 JOIN LICHDAY ld ON dk.MaLich = ld.MaLich
         WHERE ld.MaHLV = ?`;
 
     const params = [trainerId];
@@ -920,6 +927,15 @@ app.get('/api/vnpay-return', (req, res) => {
         `);
     }
 });
+
+app.get('/api/members/check-vip', (req, res) => {
+    const name = req.query.name;
+    db.query("SELECT is_vip FROM HOIVIEN WHERE TenHV = ?", [name], (err, results) => {
+        if (results.length > 0) res.json({ is_vip: results[0].is_vip });
+        else res.json({ is_vip: false });
+    });
+});
+
 
 app.use('/api',verifyToken);
 
